@@ -109,7 +109,7 @@ int      g_handleBandsM15       = INVALID_HANDLE;
 datetime g_lastExecutionBarTime = 0;
 datetime g_lastEntryBarTime     = 0;
 ulong    g_partialTicket        = 0;
-bool     g_partialTaken         = false;
+bool     g_hasPartialCloseRun   = false;
 bool     g_loggedNewsFallback   = false;
 
 int OnInit()
@@ -343,7 +343,7 @@ void ManageOpenPositions()
       if(ticket != g_partialTicket)
         {
          g_partialTicket = ticket;
-         g_partialTaken  = false;
+         g_hasPartialCloseRun = false;
         }
 
       double current_price = (position_type == POSITION_TYPE_BUY) ? SymbolInfoDouble(_Symbol, SYMBOL_BID) : SymbolInfoDouble(_Symbol, SYMBOL_ASK);
@@ -353,7 +353,7 @@ void ManageOpenPositions()
       double profit_points = (position_type == POSITION_TYPE_BUY) ? (current_price - entry_price) / _Point : (entry_price - current_price) / _Point;
       double profit_rr     = profit_points / (double)risk_points;
 
-      if(RISK_AllowPartialClose && !g_partialTaken && profit_rr >= 1.0)
+      if(RISK_AllowPartialClose && !g_hasPartialCloseRun && profit_rr >= 1.0)
          TryPartialClose(ticket, volume);
 
       if(profit_rr >= EXIT_BreakEvenRR)
@@ -850,7 +850,7 @@ bool HasForeignSymbolPosition()
 void DetectExistingManagedPosition()
   {
    g_partialTicket = 0;
-   g_partialTaken = false;
+   g_hasPartialCloseRun = false;
    for(int i = PositionsTotal() - 1; i >= 0; --i)
      {
       ulong ticket = PositionGetTicket(i);
@@ -861,7 +861,7 @@ void DetectExistingManagedPosition()
          (ulong)PositionGetInteger(POSITION_MAGIC) == GEN_MagicNumber)
         {
          g_partialTicket = ticket;
-         g_partialTaken = true;
+         g_hasPartialCloseRun = false;
          return;
         }
      }
@@ -876,7 +876,7 @@ void CacheOpenPositionState()
       return;
 
    g_partialTicket = (ulong)PositionGetInteger(POSITION_TICKET);
-   g_partialTaken = false;
+   g_hasPartialCloseRun = false;
   }
 
 void TryPartialClose(const ulong ticket, const double volume)
@@ -888,18 +888,18 @@ void TryPartialClose(const ulong ticket, const double volume)
    close_volume = NormalizeVolume(close_volume, min_volume, volume, step_volume);
    if(close_volume < min_volume || (volume - close_volume) < min_volume)
      {
-      g_partialTaken = true;
+      g_hasPartialCloseRun = true;
       return;
      }
 
    if(trade.PositionClosePartial(ticket, close_volume))
      {
-      g_partialTaken = true;
+      g_hasPartialCloseRun = true;
       WriteLog(StringFormat("Parcial executada no ticket %I64u com %.2f lots.", ticket, close_volume), false);
       return;
      }
 
-   g_partialTaken = true;
+   g_hasPartialCloseRun = true;
    LogTradeFailure("PARTIAL_CLOSE");
   }
 

@@ -175,7 +175,7 @@ Evitar:
 
 ## Limitação atual
 
-O input `FILTER_UseNewsFilter` existe, mas a versão atual do EA não bloqueia notícias automaticamente sem integração adicional com um calendário económico externo ou fluxo calendar nativo do terminal.
+O input `FILTER_UseNewsFilter` existe, mas a versão atual do EA não bloqueia notícias automaticamente sem integração adicional com um calendário económico externo ou calendário nativo do terminal. Quando ativado, o EA apenas regista um aviso uma vez por sessão.
 
 ## Fontes de referência usadas no plano
 
