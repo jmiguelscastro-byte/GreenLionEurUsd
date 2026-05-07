@@ -167,6 +167,13 @@ void OnTick()
   {
    ManageOpenPositions();
 
+   if(!HasManagedPosition() && g_partialTicket != 0)
+     {
+      ClearPartialState(g_partialTicket);
+      g_partialTicket = 0;
+      g_hasPartialCloseRun = false;
+     }
+
    if(HasManagedPosition())
       return;
 
@@ -861,7 +868,7 @@ void DetectExistingManagedPosition()
          (ulong)PositionGetInteger(POSITION_MAGIC) == GEN_MagicNumber)
         {
          g_partialTicket = ticket;
-         g_hasPartialCloseRun = false;
+         g_hasPartialCloseRun = LoadPartialState(ticket);
          return;
         }
      }
@@ -876,7 +883,7 @@ void CacheOpenPositionState()
       return;
 
    g_partialTicket = (ulong)PositionGetInteger(POSITION_TICKET);
-   g_hasPartialCloseRun = false;
+   g_hasPartialCloseRun = LoadPartialState(g_partialTicket);
   }
 
 void TryPartialClose(const ulong ticket, const double volume)
@@ -889,12 +896,14 @@ void TryPartialClose(const ulong ticket, const double volume)
    if(close_volume < min_volume || (volume - close_volume) < min_volume)
      {
       g_hasPartialCloseRun = true;
+      SavePartialState(ticket);
       return;
      }
 
    if(trade.PositionClosePartial(ticket, close_volume))
      {
       g_hasPartialCloseRun = true;
+      SavePartialState(ticket);
       WriteLog(StringFormat("Parcial executada no ticket %I64u com %.2f lots.", ticket, close_volume), false);
       return;
      }
@@ -1217,6 +1226,28 @@ bool IsBearishRejection(MqlRates &rates[])
 string BuildPositionComment(const int risk_points, const string tag)
   {
    return(StringFormat("GL|%d|%s", risk_points, tag));
+  }
+
+string BuildPartialStateKey(const ulong ticket)
+  {
+   return(StringFormat("GreenLionPartial_%I64u_%I64u", GEN_MagicNumber, ticket));
+  }
+
+bool LoadPartialState(const ulong ticket)
+  {
+   return(GlobalVariableCheck(BuildPartialStateKey(ticket)));
+  }
+
+void SavePartialState(const ulong ticket)
+  {
+   GlobalVariableSet(BuildPartialStateKey(ticket), 1.0);
+  }
+
+void ClearPartialState(const ulong ticket)
+  {
+   string key = BuildPartialStateKey(ticket);
+   if(GlobalVariableCheck(key))
+      GlobalVariableDel(key);
   }
 
 int ParseRiskPoints(const string comment)
