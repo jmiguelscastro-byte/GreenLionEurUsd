@@ -18,6 +18,8 @@ struct SignalSetup
 
 CTrade trade;
 
+const double VOLUME_ROUNDING_EPSILON = 1e-8;
+
 input group "GEN - General"
 input ulong           GEN_MagicNumber                  = 26050701;
 input int             GEN_SlippagePoints              = 20;
@@ -688,7 +690,7 @@ bool IsNewsWindow()
       return(false);
    if(!g_loggedNewsFallback)
      {
-         WriteLog(StringFormat("Filtro de notícias ativado (%d/%d min), mas esta versão exige integração manual com calendário externo antes de bloquear trades.",
+         WriteLog(StringFormat("Filtro de notícias ativado (%d/%d min), mas não irá bloquear trades nesta versão. É necessária integração manual com calendário económico externo para bloqueio automático.",
                                FILTER_NewsBlockMinutesBefore,
                                FILTER_NewsBlockMinutesAfter), false);
          g_loggedNewsFallback = true;
@@ -1088,7 +1090,7 @@ double NormalizeVolume(const double volume, const double min_volume, const doubl
       return(0.0);
 
    double bounded = MathMax(min_volume, MathMin(max_volume, volume));
-   double steps   = MathFloor((bounded / step_volume) + 1e-8);
+   double steps   = MathFloor((bounded / step_volume) + VOLUME_ROUNDING_EPSILON);
    double normalized = steps * step_volume;
    normalized = MathMax(min_volume, MathMin(max_volume, normalized));
    return(NormalizeDouble(normalized, 2));
