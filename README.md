@@ -11,7 +11,7 @@ O projeto implementa um modelo híbrido com:
 O ficheiro principal do EA é:
 
 ```text
-/home/runner/work/GreenLionEurUsd/GreenLionEurUsd/GreenLionEurUsd.mq5
+./GreenLionEurUsd.mq5
 ```
 
 ## Estratégia implementada

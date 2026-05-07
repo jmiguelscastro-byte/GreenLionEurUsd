@@ -19,6 +19,9 @@ struct SignalSetup
 CTrade trade;
 
 const double VOLUME_ROUNDING_EPSILON = 1e-8;
+const double STOP_BUFFER_POINTS = 5.0;
+const double ENTRY_EXHAUSTION_ATR_RATIO = 0.10;
+const double ENTRY_REJECTION_WICK_BODY_RATIO = 1.20;
 
 input group "GEN - General"
 input ulong           GEN_MagicNumber                  = 26050701;
@@ -514,7 +517,7 @@ bool CheckTrendPullbackSignal(const bool is_buy, SignalSetup &setup)
       bool candle_ok = IsBullishPattern(m15_rates);
       bool pullback_ok = close_h1 > ema200_h1 && (near_fast || near_medium);
       bool momentum_ok = rsi_m15 > 50.0 && rsi_m15 >= rsi_m15_prev && macd_hist_1 > 0.0 && macd_hist_1 > macd_hist_2;
-      bool exhaustion_ok = (bb_upper - close_m15) > (atr_m15 * 0.10);
+      bool exhaustion_ok = (bb_upper - close_m15) > (atr_m15 * ENTRY_EXHAUSTION_ATR_RATIO);
       if(!(candle_ok && pullback_ok && momentum_ok && exhaustion_ok))
          return(false);
 
@@ -527,7 +530,7 @@ bool CheckTrendPullbackSignal(const bool is_buy, SignalSetup &setup)
    bool candle_ok = IsBearishPattern(m15_rates);
    bool pullback_ok = close_h1 < ema200_h1 && (near_fast || near_medium);
    bool momentum_ok = rsi_m15 < 50.0 && rsi_m15 <= rsi_m15_prev && macd_hist_1 < 0.0 && macd_hist_1 < macd_hist_2;
-   bool exhaustion_ok = (close_m15 - bb_lower) > (atr_m15 * 0.10);
+   bool exhaustion_ok = (close_m15 - bb_lower) > (atr_m15 * ENTRY_EXHAUSTION_ATR_RATIO);
    if(!(candle_ok && pullback_ok && momentum_ok && exhaustion_ok))
       return(false);
 
@@ -1106,7 +1109,7 @@ void BuildTradeLevels(const bool is_buy,
   {
    double anchor_risk_points = MathAbs(entry_price - anchor_price) / _Point;
    double atr_risk_points    = (MathMax(atr_m15, atr_h1) * ENTRY_StopATRMultiplier) / _Point;
-   double min_stop_points    = MathCeil(GetBrokerStopDistancePrice() / _Point) + 5.0;
+   double min_stop_points    = MathCeil(GetBrokerStopDistancePrice() / _Point) + STOP_BUFFER_POINTS;
    double risk_points        = MathMax(anchor_risk_points, MathMax(atr_risk_points, min_stop_points));
 
    if(is_buy)
@@ -1214,7 +1217,7 @@ bool IsBullishRejection(MqlRates &rates[])
    double body = MathAbs(rates[1].close - rates[1].open);
    double lower_wick = MathMin(rates[1].open, rates[1].close) - rates[1].low;
    double upper_wick = rates[1].high - MathMax(rates[1].open, rates[1].close);
-   return(rates[1].close > rates[1].open && lower_wick > (body * 1.2) && upper_wick < lower_wick);
+   return(rates[1].close > rates[1].open && lower_wick > (body * ENTRY_REJECTION_WICK_BODY_RATIO) && upper_wick < lower_wick);
   }
 
 bool IsBearishRejection(MqlRates &rates[])
@@ -1222,7 +1225,7 @@ bool IsBearishRejection(MqlRates &rates[])
    double body = MathAbs(rates[1].close - rates[1].open);
    double upper_wick = rates[1].high - MathMax(rates[1].open, rates[1].close);
    double lower_wick = MathMin(rates[1].open, rates[1].close) - rates[1].low;
-   return(rates[1].close < rates[1].open && upper_wick > (body * 1.2) && lower_wick < upper_wick);
+   return(rates[1].close < rates[1].open && upper_wick > (body * ENTRY_REJECTION_WICK_BODY_RATIO) && lower_wick < upper_wick);
   }
 
 string BuildPositionComment(const int risk_points, const string tag)
