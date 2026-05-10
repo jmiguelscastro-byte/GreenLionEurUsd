@@ -199,7 +199,7 @@ StrategyConfig BuildStrategyConfig(const ENUM_ATX_STRATEGY_PROFILE profile)
    cfg.require_mean_reversion = false;
    cfg.require_volatility_expansion = false;
    cfg.session_start_hour_utc = FILTER_LondonStartHourUTC;
-   cfg.session_end_hour_utc = FILTER_NewYorkStartHourUTC;
+   cfg.session_end_hour_utc = FILTER_NewYorkEndHourUTC;
 
    switch(profile)
      {
@@ -292,7 +292,7 @@ StrategyConfig BuildStrategyConfig(const ENUM_ATX_STRATEGY_PROFILE profile)
          cfg.require_mean_reversion = false;
          cfg.require_volatility_expansion = true;
          cfg.session_start_hour_utc = FILTER_LondonStartHourUTC;
-         cfg.session_end_hour_utc = FILTER_NewYorkStartHourUTC;
+         cfg.session_end_hour_utc = FILTER_NewYorkEndHourUTC;
          break;
 
       default:
@@ -695,14 +695,14 @@ bool GetAsianRange(double &range_high, double &range_low)
    return(range_points >= ENTRY_MinAsianRangePoints && range_points <= ENTRY_MaxAsianRangePoints);
   }
 
-bool IsBullishRejectionCandle(const double open_price, const double close_price, const double high_price, const double low_price)
+bool IsBullishRejectionCandle(const double open_price, const double close_price, const double low_price)
   {
-   return(close_price > open_price && (open_price - low_price) > MathAbs(close_price - open_price) && high_price >= close_price);
+   return(close_price > open_price && (open_price - low_price) > MathAbs(close_price - open_price));
   }
 
-bool IsBearishRejectionCandle(const double open_price, const double close_price, const double high_price, const double low_price)
+bool IsBearishRejectionCandle(const double open_price, const double close_price, const double high_price)
   {
-   return(close_price < open_price && (high_price - open_price) > MathAbs(close_price - open_price) && low_price <= close_price);
+   return(close_price < open_price && (high_price - open_price) > MathAbs(close_price - open_price));
   }
 
 bool CheckBuySignal()
@@ -758,7 +758,7 @@ bool CheckBuySignal()
    if(g_strategy.require_mean_reversion)
      {
       bool trend_flat = MathAbs(trend_fast - trend_slow) <= (atr * ATX_MEAN_REVERSION_FLAT_ATR);
-      bool rejection = IsBullishRejectionCandle(open1, close1, high1, low1);
+      bool rejection = IsBullishRejectionCandle(open1, close1, low1);
       return(trend_flat && close1 <= lower_band && rejection && rsi_ok);
      }
 
@@ -837,7 +837,7 @@ bool CheckSellSignal()
    if(g_strategy.require_mean_reversion)
      {
       bool trend_flat = MathAbs(trend_fast - trend_slow) <= (atr * ATX_MEAN_REVERSION_FLAT_ATR);
-      bool rejection = IsBearishRejectionCandle(open1, close1, high1, low1);
+      bool rejection = IsBearishRejectionCandle(open1, close1, high1);
       return(trend_flat && close1 >= upper_band && rejection && rsi_ok);
      }
 
