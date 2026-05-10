@@ -1,6 +1,6 @@
 #property copyright "TITAN LION FX"
 #property link      "https://www.mql5.com"
-#property version   "1.00"
+#property version   "1.01"
 #property description "AurumTitanX - EA modular para XAUUSD com 5 estratégias e 5 níveis de risco."
 
 #include <Trade/Trade.mqh>
@@ -1172,8 +1172,7 @@ int OnInit()
 
    if(!ValidateIndicatorReadiness())
      {
-      WriteLog("Indicadores ainda não têm barras calculadas suficientes.", true);
-      return(INIT_FAILED);
+      WriteLog("Indicadores ainda não têm barras calculadas suficientes no arranque. EA vai aguardar novos ticks.", false);
      }
 
    if(_Period != g_strategy.signal_timeframe)
@@ -1210,6 +1209,9 @@ void OnTick()
       return;
 
    if(HasOpenPosition())
+      return;
+
+   if(!ValidateIndicatorReadiness())
       return;
 
    if(!PassCommonFilters())
