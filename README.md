@@ -1,4 +1,10 @@
-# GreenLionEurUsd
+# TITAN LION FX — GreenLionEurUsd
+
+<p align="center">
+  <img src="logo.svg" alt="TITAN LION FX Logo" width="520"/>
+</p>
+
+> **TITAN LION FX** — poder, precisão e disciplina no mercado forex.
 
 Expert Advisor em **MQL5** para **MetaTrader 5**, focado no par **EURUSD**.
 

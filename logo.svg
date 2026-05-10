@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 160" width="520" height="160">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d0d0d;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a1a2e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   style="stop-color:#f5c518;stop-opacity:1" />
+      <stop offset="50%"  style="stop-color:#ffd700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#c8960c;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#ffd700" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="520" height="160" rx="14" ry="14" fill="url(#bgGrad)"/>
+
+  <!-- Gold border -->
+  <rect width="518" height="158" rx="13" ry="13" x="1" y="1"
+        fill="none" stroke="url(#goldGrad)" stroke-width="1.5" opacity="0.7"/>
+
+  <!-- Lion head icon (stylised geometric lion) -->
+  <!-- Mane outer ring -->
+  <circle cx="78" cy="80" r="52" fill="#1e1e1e" stroke="url(#goldGrad)" stroke-width="2"/>
+
+  <!-- Mane spikes (gold triangles radiating outward) -->
+  <g fill="url(#goldGrad)" opacity="0.85" filter="url(#glow)">
+    <!-- top -->
+    <polygon points="78,14 72,34 84,34"/>
+    <!-- top-right -->
+    <polygon points="114,26 100,42 112,50"/>
+    <!-- right -->
+    <polygon points="130,80 110,74 110,86"/>
+    <!-- bottom-right -->
+    <polygon points="114,134 100,118 112,110"/>
+    <!-- bottom -->
+    <polygon points="78,146 72,126 84,126"/>
+    <!-- bottom-left -->
+    <polygon points="42,134 56,118 44,110"/>
+    <!-- left -->
+    <polygon points="26,80 46,74 46,86"/>
+    <!-- top-left -->
+    <polygon points="42,26 56,42 44,50"/>
+  </g>
+
+  <!-- Inner mane circle -->
+  <circle cx="78" cy="80" r="40" fill="#111" stroke="url(#goldGrad)" stroke-width="1"/>
+
+  <!-- Lion face -->
+  <!-- Head shape -->
+  <ellipse cx="78" cy="80" rx="28" ry="30" fill="#2a2a2a"/>
+
+  <!-- Ears -->
+  <polygon points="56,56 62,68 50,68" fill="#2a2a2a" stroke="url(#goldGrad)" stroke-width="0.8"/>
+  <polygon points="100,56 94,68 106,68" fill="#2a2a2a" stroke="url(#goldGrad)" stroke-width="0.8"/>
+
+  <!-- Eye whites -->
+  <ellipse cx="68" cy="76" rx="7" ry="6" fill="#fff"/>
+  <ellipse cx="88" cy="76" rx="7" ry="6" fill="#fff"/>
+
+  <!-- Pupils (golden) -->
+  <ellipse cx="68" cy="77" rx="4.5" ry="5" fill="url(#goldGrad)" filter="url(#glow)"/>
+  <ellipse cx="88" cy="77" rx="4.5" ry="5" fill="url(#goldGrad)" filter="url(#glow)"/>
+
+  <!-- Pupil slits -->
+  <ellipse cx="68" cy="77" rx="1.5" ry="4" fill="#000"/>
+  <ellipse cx="88" cy="77" rx="1.5" ry="4" fill="#000"/>
+
+  <!-- Nose -->
+  <polygon points="78,86 74,91 82,91" fill="url(#goldGrad)"/>
+
+  <!-- Mouth -->
+  <path d="M74,91 Q78,96 82,91" fill="none" stroke="url(#goldGrad)" stroke-width="1.5"/>
+  <line x1="74" y1="91" x2="66" y2="93" stroke="url(#goldGrad)" stroke-width="1" opacity="0.7"/>
+  <line x1="82" y1="91" x2="90" y2="93" stroke="url(#goldGrad)" stroke-width="1" opacity="0.7"/>
+
+  <!-- Brow lines (fierce look) -->
+  <line x1="61" y1="69" x2="73" y2="72" stroke="url(#goldGrad)" stroke-width="2" stroke-linecap="round"/>
+  <line x1="95" y1="69" x2="83" y2="72" stroke="url(#goldGrad)" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Main title: TITAN LION FX -->
+  <text x="155" y="70"
+        font-family="'Arial Black', 'Arial Bold', Arial, sans-serif"
+        font-size="38"
+        font-weight="900"
+        fill="url(#goldGrad)"
+        filter="url(#shadow)"
+        letter-spacing="3">TITAN LION</text>
+
+  <!-- FX accent -->
+  <text x="155" y="108"
+        font-family="'Arial Black', 'Arial Bold', Arial, sans-serif"
+        font-size="24"
+        font-weight="900"
+        fill="#ffffff"
+        letter-spacing="12"
+        opacity="0.9">FX</text>
+
+  <!-- Tagline -->
+  <text x="155" y="135"
+        font-family="Arial, sans-serif"
+        font-size="11"
+        font-weight="400"
+        fill="#ffd700"
+        letter-spacing="4"
+        opacity="0.7">EXPERT ADVISOR  ·  EURUSD  ·  MQL5</text>
+
+  <!-- Divider line under TITAN LION -->
+  <line x1="155" y1="78" x2="505" y2="78"
+        stroke="url(#goldGrad)" stroke-width="1" opacity="0.35"/>
+</svg>

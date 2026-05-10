@@ -1,4 +1,4 @@
-#property copyright "GreenLionEurUsd"
+#property copyright "TITAN LION FX"
 #property version   "1.11"
 #include <Trade/Trade.mqh>
 
@@ -485,9 +485,9 @@ void WriteLog(const string message, const bool is_error)
       return;
 
    if(is_error)
-      Print("[GreenLion][ERROR] ", message);
+      Print("[TitanLionFX][ERROR] ", message);
    else
-      Print("[GreenLion] ", message);
+      Print("[TitanLionFX] ", message);
   }
 
 bool PassCommonFilters()
