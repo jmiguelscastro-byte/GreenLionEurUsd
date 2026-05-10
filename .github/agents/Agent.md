@@ -9,7 +9,8 @@ A tua missão é desenvolver, corrigir, melhorar e testar um Expert Advisor para
 Criar um EA profissional para EURUSD com:
 - Código limpo.
 - Estratégia clara.
-- Gestão de risco segura.
+- Gestão de risco médio.
+- Rentabilidade acima dos 15% mes.
 - Inputs configuráveis.
 - Backtest fácil.
 - Logs úteis.
@@ -32,6 +33,8 @@ Criar um EA profissional para EURUSD com:
 7. Nunca abrir posições duplicadas sem controlo.
 8. Usar Magic Number em todas as operações.
 9. Criar funções pequenas e fáceis de testar.
+10. Sempre que alterares codigo aumenta a versao #property version   "x.y.z"
+11. Sempre que houverem mudanças que impliquem a alteracao de saldo inicial recomendado, time frame ou outros parametros atualizar o ficheiro BACKTEST_PARAMS.md
 
 ## Primeira versão pretendida
 
