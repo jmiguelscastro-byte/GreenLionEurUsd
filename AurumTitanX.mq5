@@ -403,6 +403,17 @@ bool ValidateHandles()
           g_handleSignalBands   != INVALID_HANDLE);
   }
 
+bool ValidateIndicatorReadiness()
+  {
+   return(BarsCalculated(g_handleSignalFastEma) > 0 &&
+          BarsCalculated(g_handleSignalSlowEma) > 0 &&
+          BarsCalculated(g_handleTrendFastEma) > 0 &&
+          BarsCalculated(g_handleTrendSlowEma) > 0 &&
+          BarsCalculated(g_handleSignalRsi) > 0 &&
+          BarsCalculated(g_handleSignalAtr) > 0 &&
+          BarsCalculated(g_handleSignalBands) > 0);
+  }
+
 bool CopyIndicatorValue(const int handle, const int buffer_index, const int shift, double &value)
   {
    double values[1];
@@ -1156,6 +1167,12 @@ int OnInit()
    if(!ValidateHandles())
      {
       WriteLog("Falha ao criar indicator handles.", true);
+      return(INIT_FAILED);
+     }
+
+   if(!ValidateIndicatorReadiness())
+     {
+      WriteLog("Indicadores ainda não têm barras calculadas suficientes.", true);
       return(INIT_FAILED);
      }
 
