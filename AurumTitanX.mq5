@@ -70,8 +70,12 @@ struct RiskProfileConfig
 
 CTrade g_trade;
 
-const double ATX_LOT_EPSILON = 1e-8;
+const double ATX_LOT_EPSILON = 1e-8;      // evita erros de arredondamento ao normalizar volumes
 const double ATX_STOP_BUFFER_ATR = 0.15;
+const double ATX_MEAN_REVERSION_FLAT_ATR = 0.35;
+const double ATX_VOLATILITY_EXPANSION_RATIO = 1.05;
+const double ATX_MIN_RISK_REWARD = 1.20;
+const int    ATX_ASIAN_RANGE_LOOKBACK_BARS = 96;
 
 input group "GEN - General"
 input ulong                      GEN_MagicNumber                = 2026051021;
@@ -658,7 +662,7 @@ bool GetAsianRange(double &range_high, double &range_low)
    MqlDateTime current_dt;
    TimeToStruct(current_utc_time, current_dt);
 
-   for(int shift = 1; shift <= 96; shift++)
+   for(int shift = 1; shift <= ATX_ASIAN_RANGE_LOOKBACK_BARS; shift++)
      {
       datetime bar_server_time = iTime(_Symbol, PERIOD_M15, shift);
       if(bar_server_time == 0)
@@ -689,6 +693,16 @@ bool GetAsianRange(double &range_high, double &range_low)
 
    double range_points = (range_high - range_low) / _Point;
    return(range_points >= ENTRY_MinAsianRangePoints && range_points <= ENTRY_MaxAsianRangePoints);
+  }
+
+bool IsBullishRejectionCandle(const double open_price, const double close_price, const double high_price, const double low_price)
+  {
+   return(close_price > open_price && (open_price - low_price) > MathAbs(close_price - open_price) && high_price >= close_price);
+  }
+
+bool IsBearishRejectionCandle(const double open_price, const double close_price, const double high_price, const double low_price)
+  {
+   return(close_price < open_price && (high_price - open_price) > MathAbs(close_price - open_price) && low_price <= close_price);
   }
 
 bool CheckBuySignal()
@@ -743,8 +757,8 @@ bool CheckBuySignal()
 
    if(g_strategy.require_mean_reversion)
      {
-      bool trend_flat = MathAbs(trend_fast - trend_slow) <= (atr * 0.35);
-      bool rejection = close1 > open1 && (open1 - low1) > MathAbs(close1 - open1);
+      bool trend_flat = MathAbs(trend_fast - trend_slow) <= (atr * ATX_MEAN_REVERSION_FLAT_ATR);
+      bool rejection = IsBullishRejectionCandle(open1, close1, high1, low1);
       return(trend_flat && close1 <= lower_band && rejection && rsi_ok);
      }
 
@@ -761,7 +775,7 @@ bool CheckBuySignal()
          double atr2 = 0.0;
          if(!GetAtrValue(2, atr2))
             return(false);
-         volatility_ok = atr > (atr2 * 1.05);
+         volatility_ok = atr > (atr2 * ATX_VOLATILITY_EXPANSION_RATIO);
         }
 
       return(price_ok && body_ok && breakout_ok && volatility_ok);
@@ -822,8 +836,8 @@ bool CheckSellSignal()
 
    if(g_strategy.require_mean_reversion)
      {
-      bool trend_flat = MathAbs(trend_fast - trend_slow) <= (atr * 0.35);
-      bool rejection = close1 < open1 && (high1 - open1) > MathAbs(close1 - open1);
+      bool trend_flat = MathAbs(trend_fast - trend_slow) <= (atr * ATX_MEAN_REVERSION_FLAT_ATR);
+      bool rejection = IsBearishRejectionCandle(open1, close1, high1, low1);
       return(trend_flat && close1 >= upper_band && rejection && rsi_ok);
      }
 
@@ -840,7 +854,7 @@ bool CheckSellSignal()
          double atr2 = 0.0;
          if(!GetAtrValue(2, atr2))
             return(false);
-         volatility_ok = atr > (atr2 * 1.05);
+         volatility_ok = atr > (atr2 * ATX_VOLATILITY_EXPANSION_RATIO);
         }
 
       return(price_ok && body_ok && breakout_ok && volatility_ok);
@@ -951,7 +965,7 @@ bool OpenBuy()
    if(risk_points <= 0.0)
       return(false);
 
-   double rr = MathMax(1.20, g_strategy.risk_reward * g_risk.rr_multiplier);
+   double rr = MathMax(ATX_MIN_RISK_REWARD, g_strategy.risk_reward * g_risk.rr_multiplier);
    double take_profit = ask + (risk_points * _Point * rr);
 
    EnforceMinimumStopDistance(true, ask, stop_loss, take_profit);
@@ -992,7 +1006,7 @@ bool OpenSell()
    if(risk_points <= 0.0)
       return(false);
 
-   double rr = MathMax(1.20, g_strategy.risk_reward * g_risk.rr_multiplier);
+   double rr = MathMax(ATX_MIN_RISK_REWARD, g_strategy.risk_reward * g_risk.rr_multiplier);
    double take_profit = bid - (risk_points * _Point * rr);
 
    EnforceMinimumStopDistance(false, bid, stop_loss, take_profit);
