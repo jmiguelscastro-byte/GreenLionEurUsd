@@ -1,6 +1,6 @@
 #property copyright "TITAN LION FX"
 #property link      "https://www.mql5.com"
-#property version   "1.05"
+#property version   "1.06"
 #property description "AurumTitanX - EA modular para XAUUSD com 5 estratégias e 5 níveis de risco."
 
 #include <Trade/Trade.mqh>
@@ -17,7 +17,8 @@ enum ENUM_ATX_STRATEGY_PROFILE
 enum ENUM_ATX_RISK_MODEL
   {
    ATX_RISK_FIXED_LOT = 0,
-   ATX_RISK_PERCENT_EQUITY = 1
+   ATX_RISK_PERCENT_EQUITY = 1,
+   ATX_RISK_BALANCE_STEPS = 2
   };
 
 enum ENUM_ATX_RISK_PROFILE
@@ -91,6 +92,8 @@ input ENUM_ATX_RISK_PROFILE      RISK_Profile                   = ATX_RISK_LEVEL
 input ENUM_ATX_RISK_MODEL        RISK_Model                     = ATX_RISK_PERCENT_EQUITY;
 input double                     RISK_FixedLot                  = 0.01;
 input double                     RISK_BasePercentPerTrade       = 0.75;
+input double                     RISK_BalanceStepMoney          = 500.0;
+input double                     RISK_LotPerBalanceStep         = 0.01;
 input double                     RISK_MaxDailyDrawdownPercent   = 4.0;
 
 input group "ENTRY - Entry Logic"
@@ -898,11 +901,26 @@ double CalculateLotSize(const double stop_points)
    double max_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX);
    double step_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_STEP);
 
-   if(min_volume <= 0.0 || max_volume <= 0.0 || step_volume <= 0.0 || stop_points <= 0.0)
+   if(min_volume <= 0.0 || max_volume <= 0.0 || step_volume <= 0.0)
       return(0.0);
 
    if(RISK_Model == ATX_RISK_FIXED_LOT)
       return(NormalizeLot(RISK_FixedLot * g_risk.volume_multiplier, min_volume, max_volume, step_volume));
+
+   if(RISK_Model == ATX_RISK_BALANCE_STEPS)
+     {
+      double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+      if(balance <= 0.0 || RISK_BalanceStepMoney <= 0.0 || RISK_LotPerBalanceStep <= 0.0)
+         return(0.0);
+
+      double steps = MathFloor((balance / RISK_BalanceStepMoney) + ATX_LOT_EPSILON);
+      steps = MathMax(1.0, steps);
+      double lot = steps * RISK_LotPerBalanceStep;
+      return(NormalizeLot(lot * g_risk.volume_multiplier, min_volume, max_volume, step_volume));
+     }
+
+   if(stop_points <= 0.0)
+      return(0.0);
 
    double equity = AccountInfoDouble(ACCOUNT_EQUITY);
    double tick_value = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_VALUE);

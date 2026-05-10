@@ -115,7 +115,7 @@ Venda:
 - nunca abre ordens sem **Stop Loss**
 - nunca abre ordens sem validação de **spread**
 - evita múltiplas entradas no mesmo candle
-- permite **lote fixo** ou **risco por percentagem**
+- permite **lote fixo**, **risco por percentagem**, ou **lote por passos de saldo** (ex: `0.01` por cada `500` USD)
 - reduz risco após perdas consecutivas no dia
 - limita trades por dia
 - bloqueia novas entradas ao atingir drawdown diário/semanal
