@@ -178,7 +178,7 @@ StrategyConfig BuildStrategyConfig(const ENUM_ATX_STRATEGY_PROFILE profile)
    StrategyConfig cfg;
    cfg.name = "Imperial Trend";
    cfg.recommended_balance = "USD 2000+";
-   cfg.notes = "Trend pullback com H4/H1 para swing disciplinado.";
+   cfg.notes = "Pullback tendencial com H4/H1 para swing disciplinado.";
    cfg.signal_timeframe = PERIOD_H1;
    cfg.trend_timeframe = PERIOD_H4;
    cfg.fast_ema = 21;
@@ -202,7 +202,7 @@ StrategyConfig BuildStrategyConfig(const ENUM_ATX_STRATEGY_PROFILE profile)
       case ATX_STRATEGY_LONDON_BREAKOUT:
          cfg.name = "London Breakout";
          cfg.recommended_balance = "USD 1500+";
-         cfg.notes = "Range asiatico + breakout em Londres para ouro intraday.";
+         cfg.notes = "Range asiático + breakout em Londres para ouro intraday.";
          cfg.signal_timeframe = PERIOD_M15;
          cfg.trend_timeframe = PERIOD_H1;
          cfg.fast_ema = 20;
@@ -225,7 +225,7 @@ StrategyConfig BuildStrategyConfig(const ENUM_ATX_STRATEGY_PROFILE profile)
       case ATX_STRATEGY_NEWYORK_MOMENTUM:
          cfg.name = "New York Momentum";
          cfg.recommended_balance = "USD 2500+";
-         cfg.notes = "Continuidade intraday com velas impulsivas e confirmacao de tendencia.";
+         cfg.notes = "Continuidade intraday com velas impulsivas e confirmação de tendência.";
          cfg.signal_timeframe = PERIOD_M30;
          cfg.trend_timeframe = PERIOD_H1;
          cfg.fast_ema = 18;
@@ -248,7 +248,7 @@ StrategyConfig BuildStrategyConfig(const ENUM_ATX_STRATEGY_PROFILE profile)
       case ATX_STRATEGY_ASIA_REVERSION:
          cfg.name = "Asia Mean Reversion";
          cfg.recommended_balance = "USD 1000+";
-         cfg.notes = "Reversoes de exaustao em consolidacao com Bollinger + RSI.";
+         cfg.notes = "Reversões de exaustão em consolidação com Bollinger + RSI.";
          cfg.signal_timeframe = PERIOD_M15;
          cfg.trend_timeframe = PERIOD_H1;
          cfg.fast_ema = 20;
@@ -271,7 +271,7 @@ StrategyConfig BuildStrategyConfig(const ENUM_ATX_STRATEGY_PROFILE profile)
       case ATX_STRATEGY_VOLATILITY_SWING:
          cfg.name = "Volatility Swing";
          cfg.recommended_balance = "USD 3000+";
-         cfg.notes = "Expansao de ATR com breakout de swing para trades mais espacados.";
+         cfg.notes = "Expansão de ATR com breakout de swing para trades mais espaçados.";
          cfg.signal_timeframe = PERIOD_H1;
          cfg.trend_timeframe = PERIOD_H4;
          cfg.fast_ema = 34;
