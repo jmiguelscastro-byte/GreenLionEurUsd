@@ -1,6 +1,6 @@
 #property copyright "TITAN LION FX"
 #property link      "https://www.mql5.com"
-#property version   "1.06"
+#property version   "1.07"
 #property description "AurumTitanX - EA modular para XAUUSD com 5 estratégias e 5 níveis de risco."
 
 #include <Trade/Trade.mqh>
@@ -916,7 +916,7 @@ double CalculateLotSize(const double stop_points)
       double steps = MathFloor((balance / RISK_BalanceStepMoney) + ATX_LOT_EPSILON);
       steps = MathMax(1.0, steps);
       double lot = steps * RISK_LotPerBalanceStep;
-      return(NormalizeLot(lot * g_risk.volume_multiplier, min_volume, max_volume, step_volume));
+      return(NormalizeLot(lot, min_volume, max_volume, step_volume));
      }
 
    if(stop_points <= 0.0)

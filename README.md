@@ -64,6 +64,7 @@ Também inclui **5 níveis de risco** (`Defensive`, `Conservative`, `Balanced`, 
 
 - desenhado para **XAUUSD** (aceita sufixos do broker)
 - usa **CTrade**
+- no modelo **Balance steps**, o lote segue diretamente `RISK_LotPerBalanceStep` (não é ajustado pelo perfil de risco)
 - abre posições sempre com **stop loss**
 - valida **spread** antes de entrar
 - evita múltiplas entradas no mesmo candle
