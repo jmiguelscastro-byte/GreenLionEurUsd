@@ -20,6 +20,55 @@ O ficheiro principal do EA é:
 ./GreenLionEurUsd.mq5
 ```
 
+## Novo EA XAUUSD — AurumTitanX
+
+Foi adicionado um novo Expert Advisor dedicado ao ouro:
+
+```text
+./AurumTitanX.mq5
+```
+
+O `AurumTitanX` segue uma abordagem modular inspirada em conceitos recorrentes dos EAs mais populares para ouro no MQL5 Market:
+
+- **trend pullback** para fases direcionais
+- **London breakout** sobre o range asiático
+- **New York momentum** para continuação intraday
+- **mean reversion** em consolidação
+- **volatility swing breakout** para expansões fortes
+
+Também inclui **5 níveis de risco** (`Defensive`, `Conservative`, `Balanced`, `Dynamic`, `Aggressive`) que alteram:
+
+- tamanho de lote / percentagem efetiva de risco
+- tolerância máxima de spread
+- multiplicador de stop por ATR
+- alvo RR
+- número máximo de trades por dia
+- agressividade de break-even e trailing stop
+
+### Estratégias disponíveis no AurumTitanX
+
+| Estratégia | Lógica principal | Timeframe indicado | Saldo sugerido |
+| --- | --- | --- | --- |
+| Imperial Trend | pullback em tendência com confirmação H4/H1 | **H1** | **USD 2000+** |
+| London Breakout | breakout do range asiático com filtro de tendência | **M15** | **USD 1500+** |
+| New York Momentum | continuação intraday com vela impulsiva | **M30** | **USD 2500+** |
+| Asia Mean Reversion | reversão controlada com Bollinger + RSI | **M15** | **USD 1000+** |
+| Volatility Swing | breakout de swing com expansão de ATR | **H1** | **USD 3000+** |
+
+### Ficheiros do novo EA
+
+- `AurumTitanX.mq5`
+- `AurumTitanX.mqproj`
+
+### Notas práticas para o AurumTitanX
+
+- desenhado para **XAUUSD** (aceita sufixos do broker)
+- usa **CTrade**
+- abre posições sempre com **stop loss**
+- valida **spread** antes de entrar
+- evita múltiplas entradas no mesmo candle
+- gere posições com **break-even** e **trailing stop**
+
 ## Estratégia implementada
 
 ### 1. Regime filter
@@ -109,7 +158,7 @@ Não existe build pipeline no repositório.
 
 Compilar no **MetaEditor / MetaTrader 5**:
 
-1. Abrir o ficheiro `GreenLionEurUsd.mq5`
+1. Abrir o ficheiro `GreenLionEurUsd.mq5` ou `AurumTitanX.mq5`
 2. Carregar no MetaEditor
 3. Compilar com **F7**
 4. Corrigir qualquer diferença específica do terminal/broker, se existir
