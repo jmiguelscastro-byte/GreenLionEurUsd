@@ -144,12 +144,12 @@ int OnInit()
    g_handleEmaMediumH4 = iMA(_Symbol, PERIOD_H4, ENTRY_MediumEMA, 0, MODE_EMA, PRICE_CLOSE);
    g_handleEmaSlowH4   = iMA(_Symbol, PERIOD_H4, ENTRY_SlowEMA, 0, MODE_EMA, PRICE_CLOSE);
    g_handleRsiH1       = iRSI(_Symbol, PERIOD_H1, ENTRY_RSI_Period, PRICE_CLOSE);
-   g_handleRsiM15      = iRSI(_Symbol, _Period, ENTRY_RSI_Period, PRICE_CLOSE);
+   g_handleRsiM15      = iRSI(_Symbol, PERIOD_M15, ENTRY_RSI_Period, PRICE_CLOSE);
    g_handleAtrH1       = iATR(_Symbol, PERIOD_H1, ENTRY_ATR_Period);
-   g_handleAtrM15      = iATR(_Symbol, _Period, ENTRY_ATR_Period);
+   g_handleAtrM15      = iATR(_Symbol, PERIOD_M15, ENTRY_ATR_Period);
    g_handleMacdH1      = iMACD(_Symbol, PERIOD_H1, ENTRY_MACD_Fast, ENTRY_MACD_Slow, ENTRY_MACD_Signal, PRICE_CLOSE);
-   g_handleMacdM15     = iMACD(_Symbol, _Period, ENTRY_MACD_Fast, ENTRY_MACD_Slow, ENTRY_MACD_Signal, PRICE_CLOSE);
-   g_handleBandsM15    = iBands(_Symbol, _Period, ENTRY_BBands_Period, 0, ENTRY_BBands_Deviation, PRICE_CLOSE);
+   g_handleMacdM15     = iMACD(_Symbol, PERIOD_M15, ENTRY_MACD_Fast, ENTRY_MACD_Slow, ENTRY_MACD_Signal, PRICE_CLOSE);
+   g_handleBandsM15    = iBands(_Symbol, PERIOD_M15, ENTRY_BBands_Period, 0, ENTRY_BBands_Deviation, PRICE_CLOSE);
 
    if(!ValidateHandles())
      {
@@ -197,11 +197,11 @@ void OnTick()
    if(!HasManagedPosition())
       ClearAllPartialState();
 
-   bool is_new_bar = CheckNewBar(_Period, g_lastExecutionBarTime);
+   bool is_new_bar = CheckNewBar(PERIOD_M15, g_lastExecutionBarTime);
    if(GEN_OnlyOnNewBar && !is_new_bar)
       return;
 
-   datetime current_bar = iTime(_Symbol, _Period, 0);
+   datetime current_bar = iTime(_Symbol, PERIOD_M15, 0);
    if(current_bar == 0 || current_bar == g_lastEntryBarTime)
       return;
 
@@ -340,15 +340,15 @@ bool CheckSellSignal(SignalSetup &setup)
 
 bool OpenBuy(const SignalSetup &setup)
   {
-    int basket_id = GetOrCreateBasketId(POSITION_TYPE_BUY);
-    double lots = CalculateLotSize(setup.risk_points, basket_id);
+   int basket_id = GetOrCreateBasketId(POSITION_TYPE_BUY);
+   double lots = CalculateLotSize(setup.risk_points, basket_id);
    if(lots <= 0.0)
      {
       WriteLog("Lote inválido para BUY.", true);
       return(false);
      }
 
-    string comment = BuildPositionComment((int)MathRound(setup.risk_points), setup.tag, basket_id, POSITION_TYPE_BUY);
+   string comment = BuildPositionComment((int)MathRound(setup.risk_points), setup.tag, basket_id, POSITION_TYPE_BUY);
    double order_sl = setup.stop_loss;
    if(EXIT_UseAggregateLossOnlyClose)
       order_sl = GetAggregateLossSafetyStop(true, setup.stop_loss, lots);
@@ -359,23 +359,23 @@ bool OpenBuy(const SignalSetup &setup)
       return(false);
      }
 
-    RegisterBasketAsActive(basket_id);
-    WriteLog(StringFormat("BUY aberto. Lote=%.2f SL=%.5f TP=%.5f Setup=%s Basket=%d", lots, order_sl, setup.take_profit, setup.tag, basket_id), false);
-    LogBasketSnapshot(basket_id, "abertura BUY");
+   RegisterBasketAsActive(basket_id);
+   WriteLog(StringFormat("BUY aberto. Lote=%.2f SL=%.5f TP=%.5f Setup=%s Basket=%d", lots, order_sl, setup.take_profit, setup.tag, basket_id), false);
+   LogBasketSnapshot(basket_id, "abertura BUY");
    return(true);
   }
 
 bool OpenSell(const SignalSetup &setup)
   {
-    int basket_id = GetOrCreateBasketId(POSITION_TYPE_SELL);
-    double lots = CalculateLotSize(setup.risk_points, basket_id);
+   int basket_id = GetOrCreateBasketId(POSITION_TYPE_SELL);
+   double lots = CalculateLotSize(setup.risk_points, basket_id);
    if(lots <= 0.0)
      {
       WriteLog("Lote inválido para SELL.", true);
       return(false);
      }
 
-    string comment = BuildPositionComment((int)MathRound(setup.risk_points), setup.tag, basket_id, POSITION_TYPE_SELL);
+   string comment = BuildPositionComment((int)MathRound(setup.risk_points), setup.tag, basket_id, POSITION_TYPE_SELL);
    double order_sl = setup.stop_loss;
    if(EXIT_UseAggregateLossOnlyClose)
       order_sl = GetAggregateLossSafetyStop(false, setup.stop_loss, lots);
@@ -386,15 +386,15 @@ bool OpenSell(const SignalSetup &setup)
       return(false);
      }
 
-    RegisterBasketAsActive(basket_id);
-    WriteLog(StringFormat("SELL aberto. Lote=%.2f SL=%.5f TP=%.5f Setup=%s Basket=%d", lots, order_sl, setup.take_profit, setup.tag, basket_id), false);
-    LogBasketSnapshot(basket_id, "abertura SELL");
+   RegisterBasketAsActive(basket_id);
+   WriteLog(StringFormat("SELL aberto. Lote=%.2f SL=%.5f TP=%.5f Setup=%s Basket=%d", lots, order_sl, setup.take_profit, setup.tag, basket_id), false);
+   LogBasketSnapshot(basket_id, "abertura SELL");
    return(true);
   }
 
 void ManageOpenPositions()
   {
-    CheckBasketExitTargets();
+   CheckBasketExitTargets();
 
    for(int i = PositionsTotal() - 1; i >= 0; --i)
      {
@@ -419,7 +419,7 @@ void ManageOpenPositions()
       if(risk_points <= 0)
          continue;
 
-         bool has_partial_close_run = LoadPartialState(ticket);
+      bool has_partial_close_run = LoadPartialState(ticket);
 
       double current_price = (position_type == POSITION_TYPE_BUY) ? SymbolInfoDouble(_Symbol, SYMBOL_BID) : SymbolInfoDouble(_Symbol, SYMBOL_ASK);
       if(current_price <= 0.0)
@@ -454,7 +454,7 @@ void ApplyTrailingStop(const ulong ticket)
       return;
 
    MqlRates rates[];
-   if(!GetRates(_Period, MathMax(ENTRY_SwingLookbackBars + 2, 8), rates))
+   if(!GetRates(PERIOD_M15, MathMax(ENTRY_SwingLookbackBars + 2, 8), rates))
       return;
 
    double swing_price = 0.0;
@@ -564,7 +564,7 @@ bool CheckTrendPullbackSignal(const bool is_buy, SignalSetup &setup)
 
    MqlRates h1_rates[];
    MqlRates m15_rates[];
-   if(!GetRates(PERIOD_H1, 5, h1_rates) || !GetRates(_Period, MathMax(ENTRY_SwingLookbackBars + 3, 8), m15_rates))
+   if(!GetRates(PERIOD_H1, 5, h1_rates) || !GetRates(PERIOD_M15, MathMax(ENTRY_SwingLookbackBars + 3, 8), m15_rates))
       return(false);
 
    double close_h1 = h1_rates[1].close;
@@ -637,7 +637,7 @@ bool CheckSessionBreakoutSignal(const bool is_buy, SignalSetup &setup)
       return(false);
 
    MqlRates m15_rates[];
-   if(!GetRates(_Period, MathMax(ENTRY_SwingLookbackBars + 3, 8), m15_rates))
+   if(!GetRates(PERIOD_M15, MathMax(ENTRY_SwingLookbackBars + 3, 8), m15_rates))
       return(false);
 
    double squeeze_width_prev = (bb_upper_2 - bb_lower_2) / _Point;
@@ -1003,7 +1003,6 @@ void TryPartialClose(const ulong ticket, const double volume)
       return;
      }
 
-    SavePartialState(ticket);
    LogTradeFailure("PARTIAL_CLOSE");
   }
 
@@ -1041,7 +1040,7 @@ void TryMoveToBreakEven(const ulong ticket, const long position_type, const doub
 bool HasContinuationStructure(const long position_type)
   {
    MqlRates rates[];
-   if(!GetRates(_Period, 4, rates))
+   if(!GetRates(PERIOD_M15, 4, rates))
       return(false);
 
    if(position_type == POSITION_TYPE_BUY)
@@ -1084,7 +1083,7 @@ bool GetAsianRange(double &asian_high, double &asian_low)
       return(false);
 
    MqlRates rates[];
-   int copied = CopyRates(_Symbol, _Period, from, to, rates);
+   int copied = CopyRates(_Symbol, PERIOD_M15, from, to, rates);
    if(copied <= 0)
       return(false);
 
