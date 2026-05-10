@@ -1,6 +1,6 @@
 #property copyright "TITAN LION FX"
 #property link      "https://www.mql5.com"
-#property version   "1.00"
+#property version   "1.05"
 #property description "AurumTitanX - EA modular para XAUUSD com 5 estratégias e 5 níveis de risco."
 
 #include <Trade/Trade.mqh>
@@ -137,6 +137,7 @@ int                 g_handleSignalBands   = INVALID_HANDLE;
 
 datetime            g_lastProcessedBar    = 0;
 datetime            g_lastEntryBar        = 0;
+bool                g_isWaitingForIndicators = false;
 StrategyConfig      g_strategy;
 RiskProfileConfig   g_risk;
 
@@ -1172,9 +1173,11 @@ int OnInit()
 
    if(!ValidateIndicatorReadiness())
      {
-      WriteLog("Indicadores ainda não têm barras calculadas suficientes.", true);
-      return(INIT_FAILED);
+      WriteLog("OnInit concluído: indicadores ainda sem barras calculadas. EA vai aguardar novos ticks.", false);
+      g_isWaitingForIndicators = true;
      }
+   else
+      g_isWaitingForIndicators = false;
 
    if(_Period != g_strategy.signal_timeframe)
       WriteLog(StringFormat("Timeframe recomendado para %s: %s.", g_strategy.name, TimeframeToText(g_strategy.signal_timeframe)), false);
@@ -1211,6 +1214,22 @@ void OnTick()
 
    if(HasOpenPosition())
       return;
+
+   if(!ValidateIndicatorReadiness())
+     {
+      if(!g_isWaitingForIndicators)
+        {
+         WriteLog("A aguardar barras calculadas dos indicadores para iniciar sinais.", false);
+         g_isWaitingForIndicators = true;
+        }
+      return;
+     }
+
+   if(g_isWaitingForIndicators)
+     {
+      WriteLog("Indicadores prontos. EA apto a avaliar sinais.", false);
+      g_isWaitingForIndicators = false;
+     }
 
    if(!PassCommonFilters())
       return;
