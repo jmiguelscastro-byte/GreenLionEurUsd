@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                            GreenLionEurUsd.mq5   |
-//|                          GreenLion Expert Advisor for EURUSD     |
+//|                      TITAN LION FX — Expert Advisor for EURUSD  |
 //|                                                                  |
 //| Strategy:                                                        |
 //|   - MA crossover for trend direction                             |
@@ -10,7 +10,7 @@
 //|   - Spread filter and same-candle entry prevention               |
 //|   - Risk-based or fixed lot sizing                               |
 //+------------------------------------------------------------------+
-#property copyright "GreenLion"
+#property copyright "TITAN LION FX"
 #property version   "1.00"
 #property strict
 
@@ -20,9 +20,9 @@
 //--- Input Parameters ---------------------------------------------------
 
 // General
-input string   InpComment       = "GreenLion";  // Trade comment
-input long     InpMagicNumber   = 20240101;      // Magic Number
-input string   InpSymbol        = "EURUSD";      // Expected symbol (validation check)
+input string   InpComment       = "TitanLionFX"; // Trade comment
+input long     InpMagicNumber   = 20240101;       // Magic Number
+input string   InpSymbol        = "EURUSD";       // Expected symbol (validation check)
 
 // Moving Averages
 input int      InpFastMAPeriod  = 20;            // Fast MA period
@@ -74,7 +74,7 @@ int OnInit()
    // Validate that the EA is running on the expected symbol
    if(sym != InpSymbol)
    {
-      PrintFormat("[GreenLion] WARNING: EA loaded on %s but expected %s. Verify symbol configuration.", sym, InpSymbol);
+      PrintFormat("[TitanLionFX] WARNING: EA loaded on %s but expected %s. Verify symbol configuration.", sym, InpSymbol);
    }
 
    // Create indicator handles
@@ -88,12 +88,12 @@ int OnInit()
       g_handleRSI    == INVALID_HANDLE ||
       g_handleATR    == INVALID_HANDLE)
    {
-      PrintFormat("[GreenLion] ERROR: Failed to create indicator handles. FastMA=%d SlowMA=%d RSI=%d ATR=%d",
+      PrintFormat("[TitanLionFX] ERROR: Failed to create indicator handles. FastMA=%d SlowMA=%d RSI=%d ATR=%d",
                   g_handleFastMA, g_handleSlowMA, g_handleRSI, g_handleATR);
       return INIT_FAILED;
    }
 
-   PrintFormat("[GreenLion] Initialized on %s %s | Magic=%I64d | AutoLot=%s | Risk=%.1f%%",
+   PrintFormat("[TitanLionFX] Initialized on %s %s | Magic=%I64d | AutoLot=%s | Risk=%.1f%%",
                sym, EnumToString((ENUM_TIMEFRAMES)Period()),
                InpMagicNumber, InpAutoLot ? "true" : "false", InpRiskPercent);
    return INIT_SUCCEEDED;
@@ -109,7 +109,7 @@ void OnDeinit(const int reason)
    if(g_handleRSI    != INVALID_HANDLE) IndicatorRelease(g_handleRSI);
    if(g_handleATR    != INVALID_HANDLE) IndicatorRelease(g_handleATR);
 
-   PrintFormat("[GreenLion] Deinitialized. Reason: %d", reason);
+   PrintFormat("[TitanLionFX] Deinitialized. Reason: %d", reason);
 }
 
 //+------------------------------------------------------------------+
@@ -186,7 +186,7 @@ double CalculateLotSize(double slDistancePoints)
 
    if(tickSize <= 0 || tickValue <= 0 || slDistancePoints <= 0)
    {
-      PrintFormat("[GreenLion] WARNING: Invalid tick/point data. Using fixed lot %.2f", InpFixedLot);
+      PrintFormat("[TitanLionFX] WARNING: Invalid tick/point data. Using fixed lot %.2f", InpFixedLot);
       return NormalizeLot(InpFixedLot);
    }
 
@@ -250,9 +250,9 @@ void ManageTrailingStop()
          if(newSL > currentSL && newSL < bid)
          {
             if(!g_trade.PositionModify(g_position.Ticket(), newSL, g_position.TakeProfit()))
-               PrintFormat("[GreenLion] TRAIL BUY modify failed: %s", g_trade.ResultRetcodeDescription());
+               PrintFormat("[TitanLionFX] TRAIL BUY modify failed: %s", g_trade.ResultRetcodeDescription());
             else
-               PrintFormat("[GreenLion] TRAIL BUY #%I64d | SL moved to %.5f", g_position.Ticket(), newSL);
+               PrintFormat("[TitanLionFX] TRAIL BUY #%I64d | SL moved to %.5f", g_position.Ticket(), newSL);
          }
       }
       else if(g_position.PositionType() == POSITION_TYPE_SELL)
@@ -262,9 +262,9 @@ void ManageTrailingStop()
          if((currentSL == 0 || newSL < currentSL) && newSL > ask)
          {
             if(!g_trade.PositionModify(g_position.Ticket(), newSL, g_position.TakeProfit()))
-               PrintFormat("[GreenLion] TRAIL SELL modify failed: %s", g_trade.ResultRetcodeDescription());
+               PrintFormat("[TitanLionFX] TRAIL SELL modify failed: %s", g_trade.ResultRetcodeDescription());
             else
-               PrintFormat("[GreenLion] TRAIL SELL #%I64d | SL moved to %.5f", g_position.Ticket(), newSL);
+               PrintFormat("[TitanLionFX] TRAIL SELL #%I64d | SL moved to %.5f", g_position.Ticket(), newSL);
          }
       }
    }
@@ -287,7 +287,7 @@ void CheckEntrySignals()
    double spreadPips    = spreadPoints * symPoint / pipSize;
    if(spreadPips > InpMaxSpreadPips)
    {
-      PrintFormat("[GreenLion] Spread too high: %.1f pips (max %.1f). Skipping.", spreadPips, InpMaxSpreadPips);
+      PrintFormat("[TitanLionFX] Spread too high: %.1f pips (max %.1f). Skipping.", spreadPips, InpMaxSpreadPips);
       return;
    }
 
@@ -295,7 +295,7 @@ void CheckEntrySignals()
    double fastMA, slowMA, rsi, atr;
    if(!GetIndicatorValues(fastMA, slowMA, rsi, atr))
    {
-      Print("[GreenLion] WARNING: Could not read indicator values.");
+      Print("[TitanLionFX] WARNING: Could not read indicator values.");
       return;
    }
 
@@ -316,13 +316,13 @@ void CheckEntrySignals()
       double tp = NormalizeDouble(ask + tpDistance, digits);
       double lot = CalculateLotSize(slDistance);
 
-      PrintFormat("[GreenLion] BUY signal | Ask=%.5f SL=%.5f TP=%.5f Lot=%.2f | FastMA=%.5f SlowMA=%.5f RSI=%.2f ATR=%.5f",
+      PrintFormat("[TitanLionFX] BUY signal | Ask=%.5f SL=%.5f TP=%.5f Lot=%.2f | FastMA=%.5f SlowMA=%.5f RSI=%.2f ATR=%.5f",
                   ask, sl, tp, lot, fastMA, slowMA, rsi, atr);
 
       if(!g_trade.Buy(lot, sym, ask, sl, tp, InpComment))
-         PrintFormat("[GreenLion] BUY failed: %d - %s", g_trade.ResultRetcode(), g_trade.ResultRetcodeDescription());
+         PrintFormat("[TitanLionFX] BUY failed: %d - %s", g_trade.ResultRetcode(), g_trade.ResultRetcodeDescription());
       else
-         PrintFormat("[GreenLion] BUY opened #%I64d at %.5f", g_trade.ResultOrder(), ask);
+         PrintFormat("[TitanLionFX] BUY opened #%I64d at %.5f", g_trade.ResultOrder(), ask);
    }
    else if(bearish && CountPositions(POSITION_TYPE_SELL) < InpMaxPositions)
    {
@@ -330,13 +330,13 @@ void CheckEntrySignals()
       double tp = NormalizeDouble(bid - tpDistance, digits);
       double lot = CalculateLotSize(slDistance);
 
-      PrintFormat("[GreenLion] SELL signal | Bid=%.5f SL=%.5f TP=%.5f Lot=%.2f | FastMA=%.5f SlowMA=%.5f RSI=%.2f ATR=%.5f",
+      PrintFormat("[TitanLionFX] SELL signal | Bid=%.5f SL=%.5f TP=%.5f Lot=%.2f | FastMA=%.5f SlowMA=%.5f RSI=%.2f ATR=%.5f",
                   bid, sl, tp, lot, fastMA, slowMA, rsi, atr);
 
       if(!g_trade.Sell(lot, sym, bid, sl, tp, InpComment))
-         PrintFormat("[GreenLion] SELL failed: %d - %s", g_trade.ResultRetcode(), g_trade.ResultRetcodeDescription());
+         PrintFormat("[TitanLionFX] SELL failed: %d - %s", g_trade.ResultRetcode(), g_trade.ResultRetcodeDescription());
       else
-         PrintFormat("[GreenLion] SELL opened #%I64d at %.5f", g_trade.ResultOrder(), bid);
+         PrintFormat("[TitanLionFX] SELL opened #%I64d at %.5f", g_trade.ResultOrder(), bid);
    }
 }
 
@@ -364,7 +364,7 @@ void OnTradeTransaction(const MqlTradeTransaction &trans,
 
             if(dealEntry == DEAL_ENTRY_OUT || dealEntry == DEAL_ENTRY_OUT_BY)
             {
-               PrintFormat("[GreenLion] DEAL CLOSED | #%I64d %s %s %.2f @ %.5f | Profit: %.2f",
+               PrintFormat("[TitanLionFX] DEAL CLOSED | #%I64d %s %s %.2f @ %.5f | Profit: %.2f",
                            dealTicket, dealSym, EnumToString(dealType),
                            dealVolume, dealPrice, dealProfit);
             }

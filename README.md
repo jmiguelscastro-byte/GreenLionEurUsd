@@ -1,8 +1,14 @@
-# GreenLion EURUSD Expert Advisor
+# TITAN LION FX — Expert Advisor EURUSD
+
+<p align="center">
+  <img src="logo.svg" alt="TITAN LION FX Logo" width="520"/>
+</p>
+
+> **TITAN LION FX** — poder, precisão e disciplina no mercado forex.
 
 Expert Advisor (EA) em MQL5 para MetaTrader 5, focado no par **EURUSD**.
 
-Bot simples, robusto e testável com gestão de risco clara, entradas técnicas filtradas e controlo rigoroso de drawdown.
+Bot robusto e testável com gestão de risco clara, entradas técnicas filtradas e controlo rigoroso de drawdown.
 
 ---
 
@@ -39,6 +45,7 @@ Bot simples, robusto e testável com gestão de risco clara, entradas técnicas 
 | Ficheiro                  | Descrição                            |
 |---------------------------|--------------------------------------|
 | `GreenLionEurUsd.mq5`     | Código fonte do Expert Advisor       |
+| `logo.svg`                | Logótipo oficial TITAN LION FX       |
 
 ---
 
@@ -116,11 +123,11 @@ Bot simples, robusto e testável com gestão de risco clara, entradas técnicas 
 O EA regista no Journal do MetaTrader:
 
 ```
-[GreenLion] Initialized on EURUSD H1 | Magic=20240101 | AutoLot=true | Risk=1.0%
-[GreenLion] BUY signal | Ask=1.08500 SL=1.08350 TP=1.08800 Lot=0.10 | FastMA=1.08480 SlowMA=1.08200 RSI=55.3 ATR=0.00100
-[GreenLion] BUY opened #12345 at 1.08500
-[GreenLion] TRAIL BUY #12345 | SL moved to 1.08420
-[GreenLion] DEAL CLOSED | #12346 EURUSD DEAL_TYPE_SELL 0.10 @ 1.08800 | Profit: 30.00
+[TitanLionFX] Initialized on EURUSD H1 | Magic=20240101 | AutoLot=true | Risk=1.0%
+[TitanLionFX] BUY signal | Ask=1.08500 SL=1.08350 TP=1.08800 Lot=0.10 | FastMA=1.08480 SlowMA=1.08200 RSI=55.3 ATR=0.00100
+[TitanLionFX] BUY opened #12345 at 1.08500
+[TitanLionFX] TRAIL BUY #12345 | SL moved to 1.08420
+[TitanLionFX] DEAL CLOSED | #12346 EURUSD DEAL_TYPE_SELL 0.10 @ 1.08800 | Profit: 30.00
 ```
 
 ---
