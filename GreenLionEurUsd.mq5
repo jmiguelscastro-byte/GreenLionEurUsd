@@ -1,11 +1,21 @@
 #property copyright "TITAN LION FX"
-#property version   "1.11"
+#property version   "1.12"
 #include <Trade/Trade.mqh>
 
 enum ENUM_RISK_MODEL
   {
    RISK_FIXED_LOT = 0,
    RISK_PERCENT_EQUITY = 1
+  };
+
+enum ENUM_AGGRESSIVE_LEVEL
+  {
+   AGGRESSIVE_CUSTOM  = 0,  // 0 - Personalizado (usa inputs RISK manuais)
+   AGGRESSIVE_LEVEL1  = 1,  // 1 - Conservador   (risco mínimo)
+   AGGRESSIVE_LEVEL2  = 2,  // 2 - Moderado       (risco baixo)
+   AGGRESSIVE_LEVEL3  = 3,  // 3 - Agressivo      (risco médio)
+   AGGRESSIVE_LEVEL4  = 4,  // 4 - Muito Agressivo (risco alto)
+   AGGRESSIVE_LEVEL5  = 5   // 5 - Máximo         (risco máximo)
   };
 
 struct SignalSetup
@@ -35,6 +45,7 @@ input int             GEN_MaxTotalPositions           = 4;
 input bool            GEN_AllowOppositeDirections     = true;
 
 input group "RISK - Risk Management"
+input ENUM_AGGRESSIVE_LEVEL RISK_AggressiveLevel      = AGGRESSIVE_CUSTOM;
 input ENUM_RISK_MODEL RISK_Model                      = RISK_PERCENT_EQUITY;
 input double          RISK_FixedLot                   = 0.10;
 input double          RISK_PercentPerTrade            = 1.00;
@@ -169,6 +180,7 @@ int OnInit()
       WriteLog("GEN_AllowOppositeDirections foi pedido, mas a conta atual não suporta posições opostas independentes.", false);
 
    WriteLog("EA inicializado com sucesso.", false);
+   WriteLog(StringFormat("Nível de agressividade: %s", GetAggressiveLevelName(RISK_AggressiveLevel)), false);
    return(INIT_SUCCEEDED);
   }
 
@@ -520,7 +532,7 @@ bool PassCommonFilters()
       return(false);
      }
 
-   if(GetTradesOpenedToday() >= RISK_MaxTradesPerDay)
+   if(GetTradesOpenedToday() >= GetEffectiveMaxTradesPerDay())
      {
       if(UI_LogSignalRejections)
          WriteLog("Entrada rejeitada por limite diário de trades.", false);
@@ -776,9 +788,9 @@ bool CheckDrawdownLimits()
    double daily_loss_pct = (GetAggregateProfit(GetStartOfDay(), TimeCurrent()) / balance) * 100.0;
    double weekly_loss_pct = (GetAggregateProfit(GetStartOfWeek(), TimeCurrent()) / balance) * 100.0;
 
-   if(daily_loss_pct <= -MathAbs(RISK_MaxDailyDrawdownPercent))
+   if(daily_loss_pct <= -MathAbs(GetEffectiveDailyDrawdownPercent()))
       return(false);
-   if(weekly_loss_pct <= -MathAbs(RISK_MaxWeeklyDrawdownPercent))
+   if(weekly_loss_pct <= -MathAbs(GetEffectiveWeeklyDrawdownPercent()))
       return(false);
 
    return(true);
@@ -867,8 +879,97 @@ double GetDynamicRiskPercent()
   {
    int consecutive_losses = GetConsecutiveLossesToday();
    if(consecutive_losses >= 2)
-      return(RISK_ReducedPercentPerTrade);
-   return(RISK_PercentPerTrade);
+      return(GetEffectiveReducedRiskPercent());
+   return(GetEffectiveRiskPercent());
+  }
+
+string GetAggressiveLevelName(const ENUM_AGGRESSIVE_LEVEL level)
+  {
+   switch(level)
+     {
+      case AGGRESSIVE_LEVEL1: return("Nível 1 - Conservador");
+      case AGGRESSIVE_LEVEL2: return("Nível 2 - Moderado");
+      case AGGRESSIVE_LEVEL3: return("Nível 3 - Agressivo");
+      case AGGRESSIVE_LEVEL4: return("Nível 4 - Muito Agressivo");
+      case AGGRESSIVE_LEVEL5: return("Nível 5 - Máximo");
+      default:                return("Personalizado");
+     }
+  }
+
+// Retorna o risco por trade (%) com base no nível de agressividade selecionado.
+// Nível 0 (Personalizado) usa o input RISK_PercentPerTrade diretamente.
+// Níveis 1-5 aplicam perfis predefinidos de crescimento progressivo de risco.
+double GetEffectiveRiskPercent()
+  {
+   switch(RISK_AggressiveLevel)
+     {
+      case AGGRESSIVE_LEVEL1: return(0.50);   // Conservador
+      case AGGRESSIVE_LEVEL2: return(1.00);   // Moderado
+      case AGGRESSIVE_LEVEL3: return(1.50);   // Agressivo
+      case AGGRESSIVE_LEVEL4: return(2.50);   // Muito Agressivo
+      case AGGRESSIVE_LEVEL5: return(4.00);   // Máximo
+      default:                return(RISK_PercentPerTrade);
+     }
+  }
+
+// Retorna o risco reduzido (%) aplicado após 2+ perdas consecutivas no dia.
+// Representa aproximadamente 50% do risco normal de cada nível para proteção de capital.
+double GetEffectiveReducedRiskPercent()
+  {
+   switch(RISK_AggressiveLevel)
+     {
+      case AGGRESSIVE_LEVEL1: return(0.25);   // Conservador
+      case AGGRESSIVE_LEVEL2: return(0.50);   // Moderado
+      case AGGRESSIVE_LEVEL3: return(0.75);   // Agressivo
+      case AGGRESSIVE_LEVEL4: return(1.25);   // Muito Agressivo
+      case AGGRESSIVE_LEVEL5: return(2.00);   // Máximo
+      default:                return(RISK_ReducedPercentPerTrade);
+     }
+  }
+
+// Retorna o máximo de trades permitidos por dia com base no nível de agressividade.
+// Níveis mais altos aumentam a frequência de entrada, aumentando a exposição diária.
+int GetEffectiveMaxTradesPerDay()
+  {
+   switch(RISK_AggressiveLevel)
+     {
+      case AGGRESSIVE_LEVEL1: return(3);
+      case AGGRESSIVE_LEVEL2: return(4);
+      case AGGRESSIVE_LEVEL3: return(6);
+      case AGGRESSIVE_LEVEL4: return(8);
+      case AGGRESSIVE_LEVEL5: return(10);
+      default:                return(RISK_MaxTradesPerDay);
+     }
+  }
+
+// Retorna o limite máximo de drawdown diário (%) com base no nível de agressividade.
+// Protege contra perdas excessivas numa única sessão de trading.
+double GetEffectiveDailyDrawdownPercent()
+  {
+   switch(RISK_AggressiveLevel)
+     {
+      case AGGRESSIVE_LEVEL1: return(2.0);
+      case AGGRESSIVE_LEVEL2: return(3.0);
+      case AGGRESSIVE_LEVEL3: return(4.0);
+      case AGGRESSIVE_LEVEL4: return(6.0);
+      case AGGRESSIVE_LEVEL5: return(10.0);
+      default:                return(RISK_MaxDailyDrawdownPercent);
+     }
+  }
+
+// Retorna o limite máximo de drawdown semanal (%) com base no nível de agressividade.
+// Protege contra séries de perdas acumuladas ao longo da semana.
+double GetEffectiveWeeklyDrawdownPercent()
+  {
+   switch(RISK_AggressiveLevel)
+     {
+      case AGGRESSIVE_LEVEL1: return(5.0);
+      case AGGRESSIVE_LEVEL2: return(7.0);
+      case AGGRESSIVE_LEVEL3: return(10.0);
+      case AGGRESSIVE_LEVEL4: return(15.0);
+      case AGGRESSIVE_LEVEL5: return(20.0);
+      default:                return(RISK_MaxWeeklyDrawdownPercent);
+     }
   }
 
 int GetConsecutiveLossesToday()
