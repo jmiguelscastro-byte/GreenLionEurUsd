@@ -1,5 +1,5 @@
-#property copyright "GreenLionEurUsd"
-#property version   "1.00"
+#property copyright "TITAN LION FX"
+#property version   "1.11"
 #include <Trade/Trade.mqh>
 
 enum ENUM_RISK_MODEL
@@ -28,18 +28,27 @@ input ulong           GEN_MagicNumber                  = 26050701;
 input int             GEN_SlippagePoints              = 20;
 input bool            GEN_AllowLongs                  = true;
 input bool            GEN_AllowShorts                 = true;
-input bool            GEN_OnlyOnNewBar                = true;
+input bool            GEN_OnlyOnNewBar                = false;
+input bool            GEN_EnableBasketTrading         = true;
+input int             GEN_MaxPositionsPerDirection    = 3;
+input int             GEN_MaxTotalPositions           = 4;
+input bool            GEN_AllowOppositeDirections     = true;
 
 input group "RISK - Risk Management"
 input ENUM_RISK_MODEL RISK_Model                      = RISK_PERCENT_EQUITY;
 input double          RISK_FixedLot                   = 0.10;
-input double          RISK_PercentPerTrade            = 0.50;
-input double          RISK_ReducedPercentPerTrade     = 0.25;
-input int             RISK_MaxTradesPerDay            = 2;
-input double          RISK_MaxDailyDrawdownPercent    = 2.0;
-input double          RISK_MaxWeeklyDrawdownPercent   = 5.0;
+input double          RISK_PercentPerTrade            = 1.00;
+input double          RISK_ReducedPercentPerTrade     = 0.50;
+input int             RISK_MaxTradesPerDay            = 6;
+input double          RISK_MaxDailyDrawdownPercent    = 4.0;
+input double          RISK_MaxWeeklyDrawdownPercent   = 10.0;
 input bool            RISK_AllowPartialClose          = true;
 input double          RISK_PartialClosePercent        = 50.0;
+input bool            RISK_UseBasketLotProgression    = true;
+input double          RISK_BasketInitialLot           = 0.01;
+input double          RISK_BasketLotMultiplier        = 1.30;
+input int             RISK_BasketMaxEntries           = 3;
+input double          RISK_BasketMaxRiskPercent       = 50.0;
 
 input group "ENTRY - Entry Logic"
 input int             ENTRY_FastEMA                   = 20;
@@ -52,25 +61,32 @@ input int             ENTRY_MACD_Slow                 = 26;
 input int             ENTRY_MACD_Signal               = 9;
 input int             ENTRY_BBands_Period             = 20;
 input double          ENTRY_BBands_Deviation          = 2.0;
-input double          ENTRY_MinTrendSeparationPoints  = 150.0;
-input double          ENTRY_PullbackToleranceATR      = 0.35;
-input double          ENTRY_StopATRMultiplier         = 1.40;
-input double          ENTRY_BreakoutBufferPoints      = 20.0;
+input double          ENTRY_MinTrendSeparationPoints  = 100.0;
+input double          ENTRY_PullbackToleranceATR      = 0.65;
+input double          ENTRY_StopATRMultiplier         = 2.40;
+input double          ENTRY_BreakoutBufferPoints      = 8.0;
 input double          ENTRY_MaxAsianRangePoints       = 900.0;
-input double          ENTRY_MinAsianRangePoints       = 120.0;
-input double          ENTRY_MaxSqueezeWidthPoints     = 250.0;
+input double          ENTRY_MinAsianRangePoints       = 80.0;
+input double          ENTRY_MaxSqueezeWidthPoints     = 320.0;
 input int             ENTRY_SwingLookbackBars         = 6;
 
 input group "EXIT - Trade Management"
 input double          EXIT_FinalTargetRR              = 2.20;
-input double          EXIT_BreakEvenRR                = 1.00;
-input double          EXIT_TrailingStartRR            = 1.50;
+input double          EXIT_BreakEvenRR                = 1.80;
+input double          EXIT_TrailingStartRR            = 2.80;
 input double          EXIT_TrailingATRMultiplier      = 1.50;
 input double          EXIT_BreakEvenBufferPoints      = 5.0;
+input bool            EXIT_UseAggregateLossOnlyClose  = true;
+input double          EXIT_BasketLossClosePercent     = 50.0;
+input double          EXIT_BasketTargetCurrency       = 0.0;
+input double          EXIT_BasketTargetRR             = 0.0;
+input bool            EXIT_UseBasketProfitTrailing    = true;
+input double          EXIT_BasketTrailStartPercent    = 2.0;
+input double          EXIT_BasketTrailGivebackPercent = 0.75;
 
 input group "FILTER - Filters"
 input double          FILTER_MaxSpreadPoints          = 18.0;
-input double          FILTER_MinATRH1Points           = 80.0;
+input double          FILTER_MinATRH1Points           = 60.0;
 input double          FILTER_MaxATRH1Points           = 700.0;
 input bool            FILTER_UseNewsFilter            = false;
 input int             FILTER_NewsBlockMinutesBefore   = 30;
@@ -79,20 +95,20 @@ input bool            FILTER_UseServerTime            = false;
 input int             FILTER_ServerUtcOffsetHours     = 0;
 input int             FILTER_MainWindow1StartHourUTC  = 7;
 input int             FILTER_MainWindow1StartMinUTC   = 0;
-input int             FILTER_MainWindow1EndHourUTC    = 11;
+input int             FILTER_MainWindow1EndHourUTC    = 12;
 input int             FILTER_MainWindow1EndMinUTC     = 30;
-input int             FILTER_MainWindow2StartHourUTC  = 13;
-input int             FILTER_MainWindow2StartMinUTC   = 0;
-input int             FILTER_MainWindow2EndHourUTC    = 16;
-input int             FILTER_MainWindow2EndMinUTC     = 30;
+input int             FILTER_MainWindow2StartHourUTC  = 12;
+input int             FILTER_MainWindow2StartMinUTC   = 30;
+input int             FILTER_MainWindow2EndHourUTC    = 18;
+input int             FILTER_MainWindow2EndMinUTC     = 0;
 input int             FILTER_BreakoutStartHourUTC     = 6;
-input int             FILTER_BreakoutStartMinUTC      = 55;
-input int             FILTER_BreakoutEndHourUTC       = 9;
+input int             FILTER_BreakoutStartMinUTC      = 30;
+input int             FILTER_BreakoutEndHourUTC       = 10;
 input int             FILTER_BreakoutEndMinUTC        = 0;
 input int             FILTER_AsianSessionStartHourUTC = 0;
 input int             FILTER_AsianSessionStartMinUTC  = 0;
-input int             FILTER_AsianSessionEndHourUTC   = 6;
-input int             FILTER_AsianSessionEndMinUTC    = 45;
+input int             FILTER_AsianSessionEndHourUTC   = 7;
+input int             FILTER_AsianSessionEndMinUTC    = 0;
 
 input group "UI - Logging"
 input bool            UI_EnableLogs                   = true;
@@ -113,9 +129,8 @@ int      g_handleBandsM15       = INVALID_HANDLE;
 
 datetime g_lastExecutionBarTime = 0;
 datetime g_lastEntryBarTime     = 0;
-ulong    g_partialTicket        = 0;
-bool     g_hasPartialCloseRun   = false;
 bool     g_loggedNewsFallback   = false;
+int      g_nextBasketId         = 1;
 
 int OnInit()
   {
@@ -129,12 +144,12 @@ int OnInit()
    g_handleEmaMediumH4 = iMA(_Symbol, PERIOD_H4, ENTRY_MediumEMA, 0, MODE_EMA, PRICE_CLOSE);
    g_handleEmaSlowH4   = iMA(_Symbol, PERIOD_H4, ENTRY_SlowEMA, 0, MODE_EMA, PRICE_CLOSE);
    g_handleRsiH1       = iRSI(_Symbol, PERIOD_H1, ENTRY_RSI_Period, PRICE_CLOSE);
-   g_handleRsiM15      = iRSI(_Symbol, PERIOD_M15, ENTRY_RSI_Period, PRICE_CLOSE);
+   g_handleRsiM15      = iRSI(_Symbol, _Period, ENTRY_RSI_Period, PRICE_CLOSE);
    g_handleAtrH1       = iATR(_Symbol, PERIOD_H1, ENTRY_ATR_Period);
-   g_handleAtrM15      = iATR(_Symbol, PERIOD_M15, ENTRY_ATR_Period);
+   g_handleAtrM15      = iATR(_Symbol, _Period, ENTRY_ATR_Period);
    g_handleMacdH1      = iMACD(_Symbol, PERIOD_H1, ENTRY_MACD_Fast, ENTRY_MACD_Slow, ENTRY_MACD_Signal, PRICE_CLOSE);
-   g_handleMacdM15     = iMACD(_Symbol, PERIOD_M15, ENTRY_MACD_Fast, ENTRY_MACD_Slow, ENTRY_MACD_Signal, PRICE_CLOSE);
-   g_handleBandsM15    = iBands(_Symbol, PERIOD_M15, ENTRY_BBands_Period, 0, ENTRY_BBands_Deviation, PRICE_CLOSE);
+   g_handleMacdM15     = iMACD(_Symbol, _Period, ENTRY_MACD_Fast, ENTRY_MACD_Slow, ENTRY_MACD_Signal, PRICE_CLOSE);
+   g_handleBandsM15    = iBands(_Symbol, _Period, ENTRY_BBands_Period, 0, ENTRY_BBands_Deviation, PRICE_CLOSE);
 
    if(!ValidateHandles())
      {
@@ -142,10 +157,16 @@ int OnInit()
       return(INIT_FAILED);
      }
 
-   DetectExistingManagedPosition();
+   InitializeBasketSequence();
 
    if(_Symbol != "EURUSD")
       WriteLog("EA desenhado para EURUSD. Verifique o símbolo atual.", false);
+
+   if(GEN_EnableBasketTrading && !IsHedgingAccount())
+      WriteLog("Conta sem hedging: baskets com múltiplas posições e hedge bidirecional ficam limitados pela lógica netting do broker.", false);
+
+   if(GEN_AllowOppositeDirections && !CanOpenOppositeDirections())
+      WriteLog("GEN_AllowOppositeDirections foi pedido, mas a conta atual não suporta posições opostas independentes.", false);
 
    WriteLog("EA inicializado com sucesso.", false);
    return(INIT_SUCCEEDED);
@@ -171,41 +192,40 @@ void OnDeinit(const int reason)
 void OnTick()
   {
    ManageOpenPositions();
+   FinalizeClosedBaskets();
 
-   if(!HasManagedPosition() && g_partialTicket != 0)
-     {
-      ClearPartialState(g_partialTicket);
-      g_partialTicket = 0;
-      g_hasPartialCloseRun = false;
-     }
+   if(!HasManagedPosition())
+      ClearAllPartialState();
 
-   if(HasManagedPosition())
-      return;
-
-   bool is_new_bar = CheckNewBar(PERIOD_M15, g_lastExecutionBarTime);
+   bool is_new_bar = CheckNewBar(_Period, g_lastExecutionBarTime);
    if(GEN_OnlyOnNewBar && !is_new_bar)
       return;
 
-   datetime current_bar = iTime(_Symbol, PERIOD_M15, 0);
+   datetime current_bar = iTime(_Symbol, _Period, 0);
    if(current_bar == 0 || current_bar == g_lastEntryBarTime)
       return;
 
    if(!PassCommonFilters())
       return;
 
-   SignalSetup setup;
-   if(GEN_AllowLongs && CheckBuySignal(setup))
+   bool opened_position = false;
+   SignalSetup buy_setup;
+   SignalSetup sell_setup;
+
+   if(GEN_AllowLongs && CanOpenManagedPosition(POSITION_TYPE_BUY) && CheckBuySignal(buy_setup))
      {
-      if(OpenBuy(setup))
-         g_lastEntryBarTime = current_bar;
-      return;
+      if(OpenBuy(buy_setup))
+         opened_position = true;
      }
 
-   if(GEN_AllowShorts && CheckSellSignal(setup))
+   if(GEN_AllowShorts && CanOpenManagedPosition(POSITION_TYPE_SELL) && CheckSellSignal(sell_setup))
      {
-      if(OpenSell(setup))
-         g_lastEntryBarTime = current_bar;
+      if(OpenSell(sell_setup))
+         opened_position = true;
      }
+
+   if(opened_position)
+      g_lastEntryBarTime = current_bar;
   }
 
 bool CheckNewBar(const ENUM_TIMEFRAMES timeframe, datetime &last_bar_time)
@@ -232,14 +252,31 @@ double GetSpreadPoints()
    return((ask - bid) / _Point);
   }
 
-double CalculateLotSize(const double stop_points)
+double CalculateLotSize(const double stop_points, const int basket_id)
   {
    double min_volume  = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
    double max_volume  = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX);
    double step_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_STEP);
 
+   double fallback_fixed_lot = NormalizeVolume(RISK_FixedLot, min_volume, max_volume, step_volume);
+   int basket_entries = (basket_id > 0) ? CountOpenPositionsByBasket(basket_id) : 0;
+
+   double progressive_lot = NormalizeVolume(RISK_BasketInitialLot, min_volume, max_volume, step_volume);
+   if(progressive_lot <= 0.0)
+      progressive_lot = fallback_fixed_lot;
+
+   if(RISK_UseBasketLotProgression && basket_entries > 0)
+     {
+      double multiplier = MathMax(RISK_BasketLotMultiplier, 1.0);
+      progressive_lot = NormalizeVolume(progressive_lot * MathPow(multiplier, basket_entries), min_volume, max_volume, step_volume);
+     }
+
    if(RISK_Model == RISK_FIXED_LOT)
-      return(NormalizeVolume(RISK_FixedLot, min_volume, max_volume, step_volume));
+     {
+      if(RISK_UseBasketLotProgression && GEN_EnableBasketTrading)
+         return(progressive_lot);
+      return(fallback_fixed_lot);
+     }
 
    if(stop_points <= 0.0)
       return(0.0);
@@ -257,8 +294,26 @@ double CalculateLotSize(const double stop_points)
    if(loss_per_lot <= 0.0)
       return(0.0);
 
-   double volume = risk_amount / loss_per_lot;
-   return(NormalizeVolume(volume, min_volume, max_volume, step_volume));
+   double risk_lot = NormalizeVolume(risk_amount / loss_per_lot, min_volume, max_volume, step_volume);
+   if(GEN_EnableBasketTrading && basket_id > 0 && RISK_BasketMaxRiskPercent > 0.0)
+     {
+      double basket_risk_budget = AccountInfoDouble(ACCOUNT_BALANCE) * (RISK_BasketMaxRiskPercent / 100.0);
+      double basket_risk_in_use = GetBasketOpenCommittedRiskCurrency(basket_id);
+      double remaining_basket_risk = basket_risk_budget - basket_risk_in_use;
+      if(remaining_basket_risk <= 0.0)
+         return(0.0);
+
+      double basket_cap_lot = NormalizeVolume(remaining_basket_risk / loss_per_lot, min_volume, max_volume, step_volume);
+      risk_lot = NormalizeVolume(MathMin(risk_lot, basket_cap_lot), min_volume, max_volume, step_volume);
+     }
+
+   if(!(RISK_UseBasketLotProgression && GEN_EnableBasketTrading))
+      return(risk_lot);
+
+   if(progressive_lot <= 0.0)
+      return(risk_lot);
+
+   return(NormalizeVolume(MathMin(progressive_lot, risk_lot), min_volume, max_volume, step_volume));
   }
 
 bool CheckBuySignal(SignalSetup &setup)
@@ -285,50 +340,62 @@ bool CheckSellSignal(SignalSetup &setup)
 
 bool OpenBuy(const SignalSetup &setup)
   {
-   double lots = CalculateLotSize(setup.risk_points);
+    int basket_id = GetOrCreateBasketId(POSITION_TYPE_BUY);
+    double lots = CalculateLotSize(setup.risk_points, basket_id);
    if(lots <= 0.0)
      {
       WriteLog("Lote inválido para BUY.", true);
       return(false);
      }
 
-   string comment = BuildPositionComment((int)MathRound(setup.risk_points), setup.tag);
-   bool result = trade.Buy(lots, _Symbol, 0.0, setup.stop_loss, setup.take_profit, comment);
+    string comment = BuildPositionComment((int)MathRound(setup.risk_points), setup.tag, basket_id, POSITION_TYPE_BUY);
+   double order_sl = setup.stop_loss;
+   if(EXIT_UseAggregateLossOnlyClose)
+      order_sl = GetAggregateLossSafetyStop(true, setup.stop_loss, lots);
+   bool result = trade.Buy(lots, _Symbol, 0.0, order_sl, setup.take_profit, comment);
    if(!result)
      {
       LogTradeFailure("BUY");
       return(false);
      }
 
-   CacheOpenPositionState();
-   WriteLog(StringFormat("BUY aberto. Lote=%.2f SL=%.5f TP=%.5f Setup=%s", lots, setup.stop_loss, setup.take_profit, setup.tag), false);
+    RegisterBasketAsActive(basket_id);
+    WriteLog(StringFormat("BUY aberto. Lote=%.2f SL=%.5f TP=%.5f Setup=%s Basket=%d", lots, order_sl, setup.take_profit, setup.tag, basket_id), false);
+    LogBasketSnapshot(basket_id, "abertura BUY");
    return(true);
   }
 
 bool OpenSell(const SignalSetup &setup)
   {
-   double lots = CalculateLotSize(setup.risk_points);
+    int basket_id = GetOrCreateBasketId(POSITION_TYPE_SELL);
+    double lots = CalculateLotSize(setup.risk_points, basket_id);
    if(lots <= 0.0)
      {
       WriteLog("Lote inválido para SELL.", true);
       return(false);
      }
 
-   string comment = BuildPositionComment((int)MathRound(setup.risk_points), setup.tag);
-   bool result = trade.Sell(lots, _Symbol, 0.0, setup.stop_loss, setup.take_profit, comment);
+    string comment = BuildPositionComment((int)MathRound(setup.risk_points), setup.tag, basket_id, POSITION_TYPE_SELL);
+   double order_sl = setup.stop_loss;
+   if(EXIT_UseAggregateLossOnlyClose)
+      order_sl = GetAggregateLossSafetyStop(false, setup.stop_loss, lots);
+   bool result = trade.Sell(lots, _Symbol, 0.0, order_sl, setup.take_profit, comment);
    if(!result)
      {
       LogTradeFailure("SELL");
       return(false);
      }
 
-   CacheOpenPositionState();
-   WriteLog(StringFormat("SELL aberto. Lote=%.2f SL=%.5f TP=%.5f Setup=%s", lots, setup.stop_loss, setup.take_profit, setup.tag), false);
+    RegisterBasketAsActive(basket_id);
+    WriteLog(StringFormat("SELL aberto. Lote=%.2f SL=%.5f TP=%.5f Setup=%s Basket=%d", lots, order_sl, setup.take_profit, setup.tag, basket_id), false);
+    LogBasketSnapshot(basket_id, "abertura SELL");
    return(true);
   }
 
 void ManageOpenPositions()
   {
+    CheckBasketExitTargets();
+
    for(int i = PositionsTotal() - 1; i >= 0; --i)
      {
       ulong ticket = PositionGetTicket(i);
@@ -352,11 +419,7 @@ void ManageOpenPositions()
       if(risk_points <= 0)
          continue;
 
-      if(ticket != g_partialTicket)
-        {
-         g_partialTicket = ticket;
-         g_hasPartialCloseRun = false;
-        }
+         bool has_partial_close_run = LoadPartialState(ticket);
 
       double current_price = (position_type == POSITION_TYPE_BUY) ? SymbolInfoDouble(_Symbol, SYMBOL_BID) : SymbolInfoDouble(_Symbol, SYMBOL_ASK);
       if(current_price <= 0.0)
@@ -365,13 +428,13 @@ void ManageOpenPositions()
       double profit_points = (position_type == POSITION_TYPE_BUY) ? (current_price - entry_price) / _Point : (entry_price - current_price) / _Point;
       double profit_rr     = profit_points / (double)risk_points;
 
-      if(RISK_AllowPartialClose && !g_hasPartialCloseRun && profit_rr >= 1.0)
+      if(RISK_AllowPartialClose && !has_partial_close_run && profit_rr >= 1.0)
          TryPartialClose(ticket, volume);
 
-      if(profit_rr >= EXIT_BreakEvenRR)
+      if(!EXIT_UseAggregateLossOnlyClose && profit_rr >= EXIT_BreakEvenRR)
          TryMoveToBreakEven(ticket, position_type, entry_price, current_sl, PositionGetDouble(POSITION_TP));
 
-      if(profit_rr >= EXIT_TrailingStartRR)
+      if(!EXIT_UseAggregateLossOnlyClose && profit_rr >= EXIT_TrailingStartRR)
          ApplyTrailingStop(ticket);
      }
   }
@@ -391,7 +454,7 @@ void ApplyTrailingStop(const ulong ticket)
       return;
 
    MqlRates rates[];
-   if(!GetRates(PERIOD_M15, MathMax(ENTRY_SwingLookbackBars + 2, 8), rates))
+   if(!GetRates(_Period, MathMax(ENTRY_SwingLookbackBars + 2, 8), rates))
       return;
 
    double swing_price = 0.0;
@@ -422,9 +485,9 @@ void WriteLog(const string message, const bool is_error)
       return;
 
    if(is_error)
-      Print("[GreenLion][ERROR] ", message);
+      Print("[TitanLionFX][ERROR] ", message);
    else
-      Print("[GreenLion] ", message);
+      Print("[TitanLionFX] ", message);
   }
 
 bool PassCommonFilters()
@@ -501,7 +564,7 @@ bool CheckTrendPullbackSignal(const bool is_buy, SignalSetup &setup)
 
    MqlRates h1_rates[];
    MqlRates m15_rates[];
-   if(!GetRates(PERIOD_H1, 5, h1_rates) || !GetRates(PERIOD_M15, MathMax(ENTRY_SwingLookbackBars + 3, 8), m15_rates))
+   if(!GetRates(PERIOD_H1, 5, h1_rates) || !GetRates(_Period, MathMax(ENTRY_SwingLookbackBars + 3, 8), m15_rates))
       return(false);
 
    double close_h1 = h1_rates[1].close;
@@ -516,9 +579,10 @@ bool CheckTrendPullbackSignal(const bool is_buy, SignalSetup &setup)
      {
       bool candle_ok = IsBullishPattern(m15_rates);
       bool pullback_ok = close_h1 > ema200_h1 && (near_fast || near_medium);
-      bool momentum_ok = rsi_m15 > 50.0 && rsi_m15 >= rsi_m15_prev && macd_hist_1 > 0.0 && macd_hist_1 > macd_hist_2;
-      bool exhaustion_ok = (bb_upper - close_m15) > (atr_m15 * ENTRY_EXHAUSTION_ATR_RATIO);
-      if(!(candle_ok && pullback_ok && momentum_ok && exhaustion_ok))
+      bool momentum_ok = rsi_m15 > 48.0 && rsi_m15 >= (rsi_m15_prev - 1.0) && macd_hist_1 > macd_hist_2 && macd_hist_1 > -(atr_m15 * 0.05);
+      bool exhaustion_ok = (bb_upper - close_m15) > (atr_m15 * 0.05);
+      int confirmations = (candle_ok ? 1 : 0) + (momentum_ok ? 1 : 0) + (exhaustion_ok ? 1 : 0);
+      if(!(pullback_ok && confirmations >= 2))
          return(false);
 
       double entry_price = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
@@ -529,9 +593,10 @@ bool CheckTrendPullbackSignal(const bool is_buy, SignalSetup &setup)
 
    bool candle_ok = IsBearishPattern(m15_rates);
    bool pullback_ok = close_h1 < ema200_h1 && (near_fast || near_medium);
-   bool momentum_ok = rsi_m15 < 50.0 && rsi_m15 <= rsi_m15_prev && macd_hist_1 < 0.0 && macd_hist_1 < macd_hist_2;
-   bool exhaustion_ok = (close_m15 - bb_lower) > (atr_m15 * ENTRY_EXHAUSTION_ATR_RATIO);
-   if(!(candle_ok && pullback_ok && momentum_ok && exhaustion_ok))
+   bool momentum_ok = rsi_m15 < 52.0 && rsi_m15 <= (rsi_m15_prev + 1.0) && macd_hist_1 < macd_hist_2 && macd_hist_1 < (atr_m15 * 0.05);
+   bool exhaustion_ok = (close_m15 - bb_lower) > (atr_m15 * 0.05);
+   int confirmations = (candle_ok ? 1 : 0) + (momentum_ok ? 1 : 0) + (exhaustion_ok ? 1 : 0);
+   if(!(pullback_ok && confirmations >= 2))
       return(false);
 
    double entry_price = SymbolInfoDouble(_Symbol, SYMBOL_BID);
@@ -572,7 +637,7 @@ bool CheckSessionBreakoutSignal(const bool is_buy, SignalSetup &setup)
       return(false);
 
    MqlRates m15_rates[];
-   if(!GetRates(PERIOD_M15, MathMax(ENTRY_SwingLookbackBars + 3, 8), m15_rates))
+   if(!GetRates(_Period, MathMax(ENTRY_SwingLookbackBars + 3, 8), m15_rates))
       return(false);
 
    double squeeze_width_prev = (bb_upper_2 - bb_lower_2) / _Point;
@@ -586,7 +651,7 @@ bool CheckSessionBreakoutSignal(const bool is_buy, SignalSetup &setup)
       bool breakout_ok = m15_rates[1].close > asian_high + breakout_buffer && m15_rates[2].close <= asian_high + breakout_buffer;
       bool squeeze_ok = squeeze_width_prev <= ENTRY_MaxSqueezeWidthPoints && squeeze_width_now > squeeze_width_prev;
       bool momentum_ok = macd_hist_1 > 0.0 && macd_hist_1 > macd_hist_2;
-      if(!(breakout_ok && squeeze_ok && momentum_ok))
+      if(!(breakout_ok && (squeeze_ok || momentum_ok)))
          return(false);
 
       double entry_price = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
@@ -598,7 +663,7 @@ bool CheckSessionBreakoutSignal(const bool is_buy, SignalSetup &setup)
    bool breakout_ok = m15_rates[1].close < asian_low - breakout_buffer && m15_rates[2].close >= asian_low - breakout_buffer;
    bool squeeze_ok = squeeze_width_prev <= ENTRY_MaxSqueezeWidthPoints && squeeze_width_now > squeeze_width_prev;
    bool momentum_ok = macd_hist_1 < 0.0 && macd_hist_1 < macd_hist_2;
-   if(!(breakout_ok && squeeze_ok && momentum_ok))
+   if(!(breakout_ok && (squeeze_ok || momentum_ok)))
       return(false);
 
    double entry_price = SymbolInfoDouble(_Symbol, SYMBOL_BID);
@@ -628,15 +693,16 @@ int GetTrendBias()
    if(separation_points < ENTRY_MinTrendSeparationPoints)
       return(0);
 
-   if(rsi_h1 >= 45.0 && rsi_h1 <= 55.0)
+   if(rsi_h1 >= 48.0 && rsi_h1 <= 52.0)
       return(0);
 
    double macd_hist = macd_main_h1 - macd_signal_h1;
+   double macd_threshold = atr_h1 * 0.01;
 
-   if(ema50_h4_1 > ema200_h4_1 && ema50_h4_1 > ema50_h4_2 && macd_hist >= 0.0)
+   if(ema50_h4_1 > ema200_h4_1 && (ema50_h4_1 >= ema50_h4_2 || (rsi_h1 > 52.0 && macd_hist >= macd_threshold)))
       return(1);
 
-   if(ema50_h4_1 < ema200_h4_1 && ema50_h4_1 < ema50_h4_2 && macd_hist <= 0.0)
+   if(ema50_h4_1 < ema200_h4_1 && (ema50_h4_1 <= ema50_h4_2 || (rsi_h1 < 48.0 && macd_hist <= -macd_threshold)))
       return(-1);
 
    return(0);
@@ -851,6 +917,54 @@ bool HasManagedPosition()
    return(false);
   }
 
+   bool CanOpenManagedPosition(const long desired_type)
+     {
+      if(!GEN_EnableBasketTrading || !IsHedgingAccount())
+         return(!HasManagedPosition());
+
+      int total_positions = CountManagedPositions();
+      int max_positions_per_direction = GEN_MaxPositionsPerDirection;
+      if(RISK_BasketMaxEntries > 0)
+         max_positions_per_direction = MathMin(max_positions_per_direction, RISK_BasketMaxEntries);
+
+      if(total_positions >= GEN_MaxTotalPositions)
+         return(false);
+
+      int same_direction = CountManagedPositions(desired_type);
+      if(same_direction >= max_positions_per_direction)
+         return(false);
+
+      long opposite_type = GetOppositePositionType(desired_type);
+      if(!GEN_AllowOppositeDirections && CountManagedPositions(opposite_type) > 0)
+         return(false);
+
+      if(GEN_AllowOppositeDirections && !CanOpenOppositeDirections() && CountManagedPositions(opposite_type) > 0)
+         return(false);
+
+      return(true);
+     }
+
+   int CountManagedPositions(const long filter_type = -1)
+     {
+      int count = 0;
+      for(int i = PositionsTotal() - 1; i >= 0; --i)
+        {
+         ulong ticket = PositionGetTicket(i);
+         if(ticket == 0 || !PositionSelectByTicket(ticket))
+            continue;
+
+         if(PositionGetString(POSITION_SYMBOL) != _Symbol)
+            continue;
+         if((ulong)PositionGetInteger(POSITION_MAGIC) != GEN_MagicNumber)
+            continue;
+         if(filter_type != -1 && PositionGetInteger(POSITION_TYPE) != filter_type)
+            continue;
+
+         count++;
+        }
+      return(count);
+     }
+
 bool HasForeignSymbolPosition()
   {
    if(!PositionSelect(_Symbol))
@@ -861,34 +975,12 @@ bool HasForeignSymbolPosition()
 
 void DetectExistingManagedPosition()
   {
-   g_partialTicket = 0;
-   g_hasPartialCloseRun = false;
-   for(int i = PositionsTotal() - 1; i >= 0; --i)
-     {
-      ulong ticket = PositionGetTicket(i);
-      if(ticket == 0 || !PositionSelectByTicket(ticket))
-         continue;
-
-      if(PositionGetString(POSITION_SYMBOL) == _Symbol &&
-         (ulong)PositionGetInteger(POSITION_MAGIC) == GEN_MagicNumber)
-        {
-         g_partialTicket = ticket;
-         g_hasPartialCloseRun = LoadPartialState(ticket);
-         return;
-        }
-     }
+   return;
   }
 
 void CacheOpenPositionState()
   {
-   if(!PositionSelect(_Symbol))
-      return;
-
-   if((ulong)PositionGetInteger(POSITION_MAGIC) != GEN_MagicNumber)
-      return;
-
-   g_partialTicket = (ulong)PositionGetInteger(POSITION_TICKET);
-   g_hasPartialCloseRun = LoadPartialState(g_partialTicket);
+   return;
   }
 
 void TryPartialClose(const ulong ticket, const double volume)
@@ -900,20 +992,18 @@ void TryPartialClose(const ulong ticket, const double volume)
    close_volume = NormalizeVolume(close_volume, min_volume, volume, step_volume);
    if(close_volume < min_volume || (volume - close_volume) < min_volume)
      {
-      g_hasPartialCloseRun = true;
       SavePartialState(ticket);
       return;
      }
 
    if(trade.PositionClosePartial(ticket, close_volume))
      {
-      g_hasPartialCloseRun = true;
       SavePartialState(ticket);
       WriteLog(StringFormat("Parcial executada no ticket %I64u com %.2f lots.", ticket, close_volume), false);
       return;
      }
 
-   g_hasPartialCloseRun = true;
+    SavePartialState(ticket);
    LogTradeFailure("PARTIAL_CLOSE");
   }
 
@@ -951,7 +1041,7 @@ void TryMoveToBreakEven(const ulong ticket, const long position_type, const doub
 bool HasContinuationStructure(const long position_type)
   {
    MqlRates rates[];
-   if(!GetRates(PERIOD_M15, 4, rates))
+   if(!GetRates(_Period, 4, rates))
       return(false);
 
    if(position_type == POSITION_TYPE_BUY)
@@ -994,7 +1084,7 @@ bool GetAsianRange(double &asian_high, double &asian_low)
       return(false);
 
    MqlRates rates[];
-   int copied = CopyRates(_Symbol, PERIOD_M15, from, to, rates);
+   int copied = CopyRates(_Symbol, _Period, from, to, rates);
    if(copied <= 0)
       return(false);
 
@@ -1233,6 +1323,27 @@ string BuildPositionComment(const int risk_points, const string tag)
    return(StringFormat("GL|%d|%s", risk_points, tag));
   }
 
+string BuildPositionComment(const int risk_points, const string tag, const int basket_id, const long position_type)
+   {
+    string direction = (position_type == POSITION_TYPE_BUY) ? "BUY" : "SELL";
+    return(StringFormat("GL|%d|%s|B%d|%s", risk_points, tag, basket_id, direction));
+   }
+
+string BuildPartialStatePrefix()
+   {
+    return(StringFormat("GreenLionPartial_%I64u_", GEN_MagicNumber));
+   }
+
+string BuildBasketActiveKey(const int basket_id)
+   {
+    return(StringFormat("GreenLionBasket_%I64u_%d", GEN_MagicNumber, basket_id));
+   }
+
+string BuildBasketPeakProfitKey(const int basket_id)
+   {
+    return(StringFormat("GreenLionBasketPeak_%I64u_%d", GEN_MagicNumber, basket_id));
+   }
+
 string BuildPartialStateKey(const ulong ticket)
   {
    return(StringFormat("GreenLionPartial_%I64u_%I64u", GEN_MagicNumber, ticket));
@@ -1255,6 +1366,11 @@ void ClearPartialState(const ulong ticket)
       GlobalVariableDel(key);
   }
 
+void ClearAllPartialState()
+   {
+    GlobalVariablesDeleteAll(BuildPartialStatePrefix());
+   }
+
 int ParseRiskPoints(const string comment)
   {
    string parts[];
@@ -1262,6 +1378,442 @@ int ParseRiskPoints(const string comment)
    if(count < 3)
       return(0);
    return((int)StringToInteger(parts[1]));
+  }
+
+int ParseBasketId(const string comment)
+  {
+   string parts[];
+   int count = StringSplit(comment, '|', parts);
+   if(count < 4)
+      return(0);
+   if(StringLen(parts[3]) < 2 || StringSubstr(parts[3], 0, 1) != "B")
+      return(0);
+   return((int)StringToInteger(StringSubstr(parts[3], 1)));
+  }
+
+long GetOppositePositionType(const long position_type)
+  {
+   if(position_type == POSITION_TYPE_BUY)
+      return(POSITION_TYPE_SELL);
+   return(POSITION_TYPE_BUY);
+  }
+
+bool IsHedgingAccount()
+  {
+   return((ENUM_ACCOUNT_MARGIN_MODE)AccountInfoInteger(ACCOUNT_MARGIN_MODE) == ACCOUNT_MARGIN_MODE_RETAIL_HEDGING);
+  }
+
+bool CanOpenOppositeDirections()
+  {
+   return(IsHedgingAccount() && (bool)AccountInfoInteger(ACCOUNT_HEDGE_ALLOWED));
+  }
+
+int GetOpenBasketId(const long position_type)
+  {
+   for(int i = PositionsTotal() - 1; i >= 0; --i)
+     {
+      ulong ticket = PositionGetTicket(i);
+      if(ticket == 0 || !PositionSelectByTicket(ticket))
+         continue;
+      if(PositionGetString(POSITION_SYMBOL) != _Symbol)
+         continue;
+      if((ulong)PositionGetInteger(POSITION_MAGIC) != GEN_MagicNumber)
+         continue;
+      if(PositionGetInteger(POSITION_TYPE) != position_type)
+         continue;
+
+      int basket_id = ParseBasketId(PositionGetString(POSITION_COMMENT));
+      if(basket_id > 0)
+         return(basket_id);
+     }
+   return(0);
+  }
+
+int GetOrCreateBasketId(const long position_type)
+  {
+   int basket_id = GetOpenBasketId(position_type);
+   if(basket_id > 0)
+      return(basket_id);
+
+   basket_id = g_nextBasketId;
+   g_nextBasketId++;
+   return(basket_id);
+  }
+
+void InitializeBasketSequence()
+  {
+   int max_basket_id = 0;
+
+   for(int i = PositionsTotal() - 1; i >= 0; --i)
+     {
+      ulong ticket = PositionGetTicket(i);
+      if(ticket == 0 || !PositionSelectByTicket(ticket))
+         continue;
+      if(PositionGetString(POSITION_SYMBOL) != _Symbol)
+         continue;
+      if((ulong)PositionGetInteger(POSITION_MAGIC) != GEN_MagicNumber)
+         continue;
+
+      max_basket_id = MathMax(max_basket_id, ParseBasketId(PositionGetString(POSITION_COMMENT)));
+     }
+
+   if(HistorySelect(0, TimeCurrent()))
+     {
+      for(int i = HistoryDealsTotal() - 1; i >= 0; --i)
+        {
+         ulong ticket = HistoryDealGetTicket(i);
+         if(ticket == 0)
+            continue;
+         if(HistoryDealGetString(ticket, DEAL_SYMBOL) != _Symbol)
+            continue;
+         if((ulong)HistoryDealGetInteger(ticket, DEAL_MAGIC) != GEN_MagicNumber)
+            continue;
+
+         max_basket_id = MathMax(max_basket_id, ParseBasketId(HistoryDealGetString(ticket, DEAL_COMMENT)));
+        }
+     }
+
+   g_nextBasketId = max_basket_id + 1;
+   if(g_nextBasketId < 1)
+      g_nextBasketId = 1;
+  }
+
+void RegisterBasketAsActive(const int basket_id)
+  {
+   if(basket_id > 0)
+      GlobalVariableSet(BuildBasketActiveKey(basket_id), (double)TimeCurrent());
+  }
+
+int CountOpenPositionsByBasket(const int basket_id)
+  {
+   int count = 0;
+   for(int i = PositionsTotal() - 1; i >= 0; --i)
+     {
+      ulong ticket = PositionGetTicket(i);
+      if(ticket == 0 || !PositionSelectByTicket(ticket))
+         continue;
+      if(PositionGetString(POSITION_SYMBOL) != _Symbol)
+         continue;
+      if((ulong)PositionGetInteger(POSITION_MAGIC) != GEN_MagicNumber)
+         continue;
+      if(ParseBasketId(PositionGetString(POSITION_COMMENT)) != basket_id)
+         continue;
+      count++;
+     }
+   return(count);
+  }
+
+double GetBasketOpenProfit(const int basket_id)
+  {
+   double profit = 0.0;
+   for(int i = PositionsTotal() - 1; i >= 0; --i)
+     {
+      ulong ticket = PositionGetTicket(i);
+      if(ticket == 0 || !PositionSelectByTicket(ticket))
+         continue;
+      if(PositionGetString(POSITION_SYMBOL) != _Symbol)
+         continue;
+      if((ulong)PositionGetInteger(POSITION_MAGIC) != GEN_MagicNumber)
+         continue;
+      if(ParseBasketId(PositionGetString(POSITION_COMMENT)) != basket_id)
+         continue;
+
+      profit += PositionGetDouble(POSITION_PROFIT);
+     }
+   return(profit);
+  }
+
+double GetBasketClosedProfit(const int basket_id)
+  {
+   double profit = 0.0;
+   if(!HistorySelect(0, TimeCurrent()))
+      return(0.0);
+
+   for(int i = HistoryDealsTotal() - 1; i >= 0; --i)
+     {
+      ulong ticket = HistoryDealGetTicket(i);
+      if(ticket == 0)
+         continue;
+      if(HistoryDealGetString(ticket, DEAL_SYMBOL) != _Symbol)
+         continue;
+      if((ulong)HistoryDealGetInteger(ticket, DEAL_MAGIC) != GEN_MagicNumber)
+         continue;
+      if((long)HistoryDealGetInteger(ticket, DEAL_ENTRY) != DEAL_ENTRY_OUT)
+         continue;
+      if(ParseBasketId(HistoryDealGetString(ticket, DEAL_COMMENT)) != basket_id)
+         continue;
+
+      profit += HistoryDealGetDouble(ticket, DEAL_PROFIT) +
+                HistoryDealGetDouble(ticket, DEAL_SWAP) +
+                HistoryDealGetDouble(ticket, DEAL_COMMISSION);
+     }
+   return(profit);
+  }
+
+double GetBasketOpenVolume(const int basket_id)
+  {
+   double volume = 0.0;
+   for(int i = PositionsTotal() - 1; i >= 0; --i)
+     {
+      ulong ticket = PositionGetTicket(i);
+      if(ticket == 0 || !PositionSelectByTicket(ticket))
+         continue;
+      if(PositionGetString(POSITION_SYMBOL) != _Symbol)
+         continue;
+      if((ulong)PositionGetInteger(POSITION_MAGIC) != GEN_MagicNumber)
+         continue;
+      if(ParseBasketId(PositionGetString(POSITION_COMMENT)) != basket_id)
+         continue;
+
+      volume += PositionGetDouble(POSITION_VOLUME);
+     }
+   return(volume);
+  }
+
+   double GetRiskValueForPoints(const int risk_points, const double volume)
+     {
+      double tick_value = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_VALUE);
+      double tick_size  = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
+      if(risk_points <= 0 || volume <= 0.0 || tick_value <= 0.0 || tick_size <= 0.0)
+         return(0.0);
+
+      double stop_price_distance = risk_points * _Point;
+      return((stop_price_distance / tick_size) * tick_value * volume);
+     }
+
+   double GetBasketCommittedRiskCurrency(const int basket_id)
+     {
+      double risk_value = 0.0;
+      if(!HistorySelect(0, TimeCurrent()))
+         return(0.0);
+
+      for(int i = HistoryDealsTotal() - 1; i >= 0; --i)
+        {
+         ulong ticket = HistoryDealGetTicket(i);
+         if(ticket == 0)
+            continue;
+         if(HistoryDealGetString(ticket, DEAL_SYMBOL) != _Symbol)
+            continue;
+         if((ulong)HistoryDealGetInteger(ticket, DEAL_MAGIC) != GEN_MagicNumber)
+            continue;
+         if((long)HistoryDealGetInteger(ticket, DEAL_ENTRY) != DEAL_ENTRY_IN)
+            continue;
+
+         string comment = HistoryDealGetString(ticket, DEAL_COMMENT);
+         if(ParseBasketId(comment) != basket_id)
+            continue;
+
+         risk_value += GetRiskValueForPoints(ParseRiskPoints(comment), HistoryDealGetDouble(ticket, DEAL_VOLUME));
+        }
+      return(risk_value);
+     }
+
+      double GetBasketOpenCommittedRiskCurrency(const int basket_id)
+        {
+         double risk_value = 0.0;
+
+         for(int i = PositionsTotal() - 1; i >= 0; --i)
+           {
+            ulong ticket = PositionGetTicket(i);
+            if(ticket == 0 || !PositionSelectByTicket(ticket))
+               continue;
+            if(PositionGetString(POSITION_SYMBOL) != _Symbol)
+               continue;
+            if((ulong)PositionGetInteger(POSITION_MAGIC) != GEN_MagicNumber)
+               continue;
+
+            string comment = PositionGetString(POSITION_COMMENT);
+            if(ParseBasketId(comment) != basket_id)
+               continue;
+
+            double entry_price = PositionGetDouble(POSITION_PRICE_OPEN);
+            double stop_loss   = PositionGetDouble(POSITION_SL);
+            double volume      = PositionGetDouble(POSITION_VOLUME);
+            int risk_points    = ParseRiskPoints(comment);
+
+            if(stop_loss > 0.0)
+               risk_points = (int)MathRound(MathAbs(entry_price - stop_loss) / _Point);
+
+            risk_value += GetRiskValueForPoints(risk_points, volume);
+           }
+
+         return(risk_value);
+        }
+
+   double GetBasketTotalProfit(const int basket_id)
+     {
+      return(GetBasketOpenProfit(basket_id) + GetBasketClosedProfit(basket_id));
+     }
+
+   double GetBasketProfitRR(const int basket_id)
+     {
+      double committed_risk = GetBasketCommittedRiskCurrency(basket_id);
+      if(committed_risk <= 0.0)
+         return(0.0);
+
+      return(GetBasketTotalProfit(basket_id) / committed_risk);
+     }
+
+   double GetAggregateLossSafetyStop(const bool is_buy, const double fallback_stop, const double volume)
+      {
+       double tick_value = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_VALUE);
+       double tick_size  = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
+       double bid        = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+       double ask        = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+       double entry_price = is_buy ? ask : bid;
+       if(entry_price <= 0.0 || volume <= 0.0 || tick_value <= 0.0 || tick_size <= 0.0)
+            return(fallback_stop);
+
+       double emergency_budget = AccountInfoDouble(ACCOUNT_BALANCE) * (EXIT_BasketLossClosePercent / 100.0);
+       if(emergency_budget <= 0.0)
+            return(fallback_stop);
+
+       double price_distance = (emergency_budget / (tick_value * volume)) * tick_size;
+       double safety_stop = is_buy ? entry_price - price_distance : entry_price + price_distance;
+       return(NormalizeDouble(safety_stop, _Digits));
+      }
+
+   double LoadBasketPeakProfit(const int basket_id)
+      {
+       string key = BuildBasketPeakProfitKey(basket_id);
+       if(!GlobalVariableCheck(key))
+            return(0.0);
+       return(GlobalVariableGet(key));
+      }
+
+   void SaveBasketPeakProfit(const int basket_id, const double profit_value)
+      {
+       GlobalVariableSet(BuildBasketPeakProfitKey(basket_id), profit_value);
+      }
+
+   void ClearBasketPeakProfit(const int basket_id)
+      {
+       string key = BuildBasketPeakProfitKey(basket_id);
+       if(GlobalVariableCheck(key))
+            GlobalVariableDel(key);
+      }
+
+   bool CloseBasketPositions(const int basket_id, const string reason)
+     {
+      bool all_closed = true;
+
+      for(int i = PositionsTotal() - 1; i >= 0; --i)
+        {
+         ulong ticket = PositionGetTicket(i);
+         if(ticket == 0 || !PositionSelectByTicket(ticket))
+            continue;
+         if(PositionGetString(POSITION_SYMBOL) != _Symbol)
+            continue;
+         if((ulong)PositionGetInteger(POSITION_MAGIC) != GEN_MagicNumber)
+            continue;
+         if(ParseBasketId(PositionGetString(POSITION_COMMENT)) != basket_id)
+            continue;
+
+         if(!trade.PositionClose(ticket))
+           {
+            all_closed = false;
+            LogTradeFailure("BASKET_CLOSE");
+           }
+        }
+
+      if(all_closed)
+         WriteLog(StringFormat("Basket %d fechado por alvo agregado: %s", basket_id, reason), false);
+
+      return(all_closed);
+     }
+
+   void CheckBasketExitTargets()
+     {
+      if(!EXIT_UseAggregateLossOnlyClose &&
+         EXIT_BasketTargetCurrency <= 0.0 &&
+         EXIT_BasketTargetRR <= 0.0 &&
+         !EXIT_UseBasketProfitTrailing)
+         return;
+
+      for(int basket_id = 1; basket_id < g_nextBasketId; ++basket_id)
+        {
+         string key = BuildBasketActiveKey(basket_id);
+         if(!GlobalVariableCheck(key))
+            continue;
+         if(CountOpenPositionsByBasket(basket_id) <= 0)
+            continue;
+
+         double open_profit = GetBasketOpenProfit(basket_id);
+         double basket_profit = GetBasketTotalProfit(basket_id);
+         double basket_rr = GetBasketProfitRR(basket_id);
+         double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+
+         if(EXIT_UseAggregateLossOnlyClose && EXIT_BasketLossClosePercent > 0.0)
+            {
+             double loss_threshold = -(balance * (EXIT_BasketLossClosePercent / 100.0));
+             if(open_profit <= loss_threshold)
+                {
+                  LogBasketSnapshot(basket_id, "limite de perda agregado atingido");
+                  CloseBasketPositions(basket_id, StringFormat("loss %.2f <= %.2f", open_profit, loss_threshold));
+                  continue;
+                }
+            }
+
+         if(EXIT_UseBasketProfitTrailing)
+            {
+             double trail_start = balance * (EXIT_BasketTrailStartPercent / 100.0);
+             double trail_giveback = balance * (EXIT_BasketTrailGivebackPercent / 100.0);
+             double peak_profit = MathMax(LoadBasketPeakProfit(basket_id), basket_profit);
+             SaveBasketPeakProfit(basket_id, peak_profit);
+
+             if(trail_start > 0.0 && trail_giveback > 0.0 && peak_profit >= trail_start && basket_profit <= (peak_profit - trail_giveback))
+                {
+                  LogBasketSnapshot(basket_id, "trailing de lucro do basket acionado");
+                  CloseBasketPositions(basket_id, StringFormat("trail %.2f <= peak %.2f - %.2f", basket_profit, peak_profit, trail_giveback));
+                  continue;
+                }
+            }
+
+         if(EXIT_BasketTargetCurrency > 0.0 && basket_profit >= EXIT_BasketTargetCurrency)
+           {
+            LogBasketSnapshot(basket_id, "alvo monetario atingido");
+            CloseBasketPositions(basket_id, StringFormat("profit %.2f >= %.2f", basket_profit, EXIT_BasketTargetCurrency));
+            continue;
+           }
+
+         if(EXIT_BasketTargetRR > 0.0 && basket_rr >= EXIT_BasketTargetRR)
+           {
+            LogBasketSnapshot(basket_id, "alvo RR atingido");
+            CloseBasketPositions(basket_id, StringFormat("RR %.2f >= %.2f", basket_rr, EXIT_BasketTargetRR));
+           }
+        }
+     }
+
+void LogBasketSnapshot(const int basket_id, const string reason)
+  {
+   if(basket_id <= 0)
+      return;
+
+      WriteLog(StringFormat("Basket %d [%s] Open=%d Volume=%.2f Floating=%.2f Realized=%.2f Total=%.2f RR=%.2f",
+                         basket_id,
+                         reason,
+                         CountOpenPositionsByBasket(basket_id),
+                         GetBasketOpenVolume(basket_id),
+                         GetBasketOpenProfit(basket_id),
+                            GetBasketClosedProfit(basket_id),
+                            GetBasketTotalProfit(basket_id),
+                            GetBasketProfitRR(basket_id)), false);
+  }
+
+void FinalizeClosedBaskets()
+  {
+   for(int basket_id = 1; basket_id < g_nextBasketId; ++basket_id)
+     {
+      string key = BuildBasketActiveKey(basket_id);
+      if(!GlobalVariableCheck(key))
+         continue;
+      if(CountOpenPositionsByBasket(basket_id) > 0)
+         continue;
+
+      WriteLog(StringFormat("Basket %d fechado. Profit realizado=%.2f", basket_id, GetBasketClosedProfit(basket_id)), false);
+      ClearBasketPeakProfit(basket_id);
+      GlobalVariableDel(key);
+     }
   }
 
 datetime GetStartOfDay()

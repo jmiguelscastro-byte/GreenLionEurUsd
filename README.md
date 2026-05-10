@@ -1,12 +1,13 @@
-# TITAN LION FX — GreenLionEurUsd
-
-<p align="center">
-  <img src="logo.svg" alt="TITAN LION FX Logo" width="520"/>
-</p>
-
-> **TITAN LION FX** — poder, precisão e disciplina no mercado forex.
+# GreenLionEurUsd
 
 Expert Advisor em **MQL5** para **MetaTrader 5**, focado no par **EURUSD**.
+
+---
+
+> 🦁 **TITAN LION FX** — nova versão evoluída do EA, com branding comercial e funcionalidades v1.11.
+> Ficheiro: [`TitanLionFX.mq5`](./TitanLionFX.mq5) — ver secção [TITAN LION FX](#titan-lion-fx) abaixo.
+
+---
 
 O projeto implementa um modelo híbrido com:
 - **Trend Pullback Continuation**
@@ -198,3 +199,25 @@ O input `FILTER_UseNewsFilter` existe, mas a versão atual do EA não bloqueia n
 - LuxAlgo Risk — https://www.luxalgo.com/blog/risk-management-strategies-for-algo-trading/
 - DailyForex — https://www.dailyforex.com/forex-articles/algorithmic-trading-risk-management/216030
 - FIA Risk Controls — https://www.fia.org/sites/default/files/2024-07/FIA_WP_AUTOMATED%20TRADING%20RISK%20CONTROLS_FINAL_0.pdf
+
+---
+
+## TITAN LION FX
+
+<p align="center">
+  <img src="logo.svg" alt="TITAN LION FX Logo" width="520"/>
+</p>
+
+> **TITAN LION FX** — poder, precisão e disciplina no mercado forex.
+
+A versão **TITAN LION FX** (`TitanLionFX.mq5`) é um EA separado e independente do GreenLionEurUsd, construído sobre a mesma arquitetura mas com o branding comercial completo e as funcionalidades v1.11:
+
+- basket trading com progressão de lotes
+- targets e trailing de cesta
+- parâmetros otimizados para EURUSD
+
+### Compilação do TitanLionFX
+
+1. Abrir o ficheiro `TitanLionFX.mq5` no **MetaEditor**
+2. Compilar com **F7**
+3. O EA ficará disponível na pasta `Experts` do terminal MT5
