@@ -1,7 +1,7 @@
 #property copyright "TITAN LION FX"
 #property link      "https://www.mql5.com"
 #property version   "1.00"
-#property description "AurumTitanX - EA modular para XAUUSD com 5 estrategias e 5 niveis de risco."
+#property description "AurumTitanX - EA modular para XAUUSD com 5 estratégias e 5 níveis de risco."
 
 #include <Trade/Trade.mqh>
 
@@ -973,7 +973,7 @@ bool OpenBuy()
       return(false);
      }
 
-   WriteLog(StringFormat("BUY aberto | Strategia=%s | Risco=%s | Lot=%.2f | SL=%.2f pts | TP RR=%.2f",
+   WriteLog(StringFormat("BUY aberto | Estratégia=%s | Risco=%s | Lot=%.2f | SL=%.2f pts | TP RR=%.2f",
                          g_strategy.name, g_risk.name, lot, risk_points, rr), false);
    return(true);
   }
@@ -1014,7 +1014,7 @@ bool OpenSell()
       return(false);
      }
 
-   WriteLog(StringFormat("SELL aberto | Strategia=%s | Risco=%s | Lot=%.2f | SL=%.2f pts | TP RR=%.2f",
+   WriteLog(StringFormat("SELL aberto | Estratégia=%s | Risco=%s | Lot=%.2f | SL=%.2f pts | TP RR=%.2f",
                          g_strategy.name, g_risk.name, lot, risk_points, rr), false);
    return(true);
   }
@@ -1148,7 +1148,7 @@ int OnInit()
    if(_Period != g_strategy.signal_timeframe)
       WriteLog(StringFormat("Timeframe recomendado para %s: %s.", g_strategy.name, TimeframeToText(g_strategy.signal_timeframe)), false);
 
-   WriteLog(StringFormat("Inicializado | Estrategia=%s | Risco=%s | Saldo sugerido=%s | Timeframe sugerido=%s",
+   WriteLog(StringFormat("Inicializado | Estratégia=%s | Risco=%s | Saldo sugerido=%s | Timeframe sugerido=%s",
                          g_strategy.name, g_risk.name, g_strategy.recommended_balance, TimeframeToText(g_strategy.signal_timeframe)), false);
    WriteLog(g_strategy.notes, false);
    return(INIT_SUCCEEDED);
