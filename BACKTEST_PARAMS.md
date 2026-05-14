@@ -8,11 +8,18 @@
 
 ## 🎯 CONFIGURAÇÃO RECOMENDADA DO BACKTEST
 
+### ✅ Resposta rápida (Timeframe e Balance)
+
+```text
+Timeframe inicial recomendado: M15
+Depósito inicial recomendado:  5,000.00 USD
+```
+
 ### 1️⃣ **PARÂMETROS GERAIS DO MT5**
 
 ```
 ├── Símbolo: EURUSD
-├── Timeframe Simulação: Timeframe do gráfico atual
+├── Timeframe Simulação: M15 (recomendado)
 ├── Modo: 1 click / OHLC / Open prices
 ├── Spread: 10 pontos (padrão EURUSD real)
 ├── Ponto de Partida: 01-01-2024
@@ -435,4 +442,3 @@ Próximos Passos:
 **📌 Última atualização:** 07-05-2026 (v1.01)  
 **👤 Autor:** GreenLion EA Development  
 **📧 Questões:** Verificar Agent.md para regras
-
