@@ -2,6 +2,10 @@
 
 Este projeto é um Expert Advisor em MQL5 para MetaTrader 5.
 
+## Par alvo
+
+- O **TITAN LION** deste repositório é focado no par **EURUSD**.
+
 ## Regras gerais
 
 - Escrever código limpo, seguro e bem comentado.
